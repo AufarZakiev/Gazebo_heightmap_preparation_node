@@ -15,6 +15,7 @@ int main(int argc, char **argv)
   //Initiate ROS
 	ros::init(argc, argv, "map_preparing");
 	std::string map_path="";
+	std::string save_path="";
 	size_t x_offset=0;
 	size_t y_offset=0;
 
@@ -32,6 +33,9 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	size_t found = map_path.find_last_of("/");
+	save_path=map_path.substr(0,found);
+
 	Image source_image(map_path);
 	size_t temp=0;
 	size_t min_width=source_image.baseColumns();
@@ -40,7 +44,18 @@ int main(int argc, char **argv)
 
 	for(int i=3; i<argc; i++)
 	{
-		if(!strcmp(argv[i], "-offset"))
+		if(!strcmp(argv[i], "-s"))
+		{
+			if(++i < argc){
+				save_path = argv[i];
+			}
+			else
+			{
+				puts(USAGE);
+				return 1;
+			} 
+		}
+		else if(!strcmp(argv[i], "-offset"))
 		{
 			if(++i < argc){
 				temp = atoi(argv[i]);
@@ -97,6 +112,7 @@ int main(int argc, char **argv)
 	sub_image.chop(Geometry(x_offset,y_offset));
 	sub_image.crop(Geometry(calculated_size,calculated_size));
 	sub_image.type(GrayscaleType);
-	sub_image.write("new_map.png");
+	save_path+="/new_map.png";
+	sub_image.write(save_path);
 	return 0;
 }
