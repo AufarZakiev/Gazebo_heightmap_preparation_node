@@ -125,7 +125,11 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)\
+add_executable(map_filter_node src/map_filter_node.cpp)
+add_executable(map_pgm2png src/map_pgm2png.cpp)
+add_executable(world_creator src/world_creator.cpp)
 add_executable(gazebo_heightmap_preparation_node src/map_preparing_node.cpp)
+add_executable(gazebo_heightmap_preparation_pgm_node src/map_preparing_node_pgm.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -141,6 +145,24 @@ add_executable(gazebo_heightmap_preparation_node src/map_preparing_node.cpp)
    ${ImageMagick_LIBRARIES}
  )
 
+ target_link_libraries(gazebo_heightmap_preparation_pgm_node
+   ${catkin_LIBRARIES}
+   ${ImageMagick_LIBRARIES}
+ )
+
+ target_link_libraries(map_pgm2png
+   ${catkin_LIBRARIES}
+   ${ImageMagick_LIBRARIES}
+ )
+
+target_link_libraries(world_creator
+   ${catkin_LIBRARIES}
+ )
+
+
+  target_link_libraries(map_filter_node
+   ${catkin_LIBRARIES}
+ )
 
 
 #############

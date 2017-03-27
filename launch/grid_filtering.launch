@@ -1,0 +1,12 @@
+<launch>
+	<arg name="input_map_yaml_file"/>
+	<arg name="filtered_map_saving_path" />
+
+	<node name="map_server" pkg="map_server" type="map_server" args="$(arg input_map_yaml_file)"> </node>
+
+	<node name="filter" pkg="gazebo_heightmap_preparation" type="map_filter_node"> </node>
+	<node name="saver" pkg="map_server" type="map_saver" args="-f $(arg filtered_map_saving_path)"> 
+		<remap from="map" to="filtered_map"/>
+	</node>
+	
+</launch>
