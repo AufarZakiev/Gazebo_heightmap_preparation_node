@@ -42,22 +42,22 @@ public:
     int count=0;
     int not_passed_count=0;
     ROS_INFO("not_passed_count = %d",not_passed_count);
-	not_passed_count=0; 
-	for(size_t i=0;i<height;++i){
-	  	for(size_t j=0;j<width;++j){
-	   		ranks[convert_to_index(i,j,width)]=compute_rank(i,j,width,height);
-	    	count++;
-	    	if(ranks[convert_to_index(i,j,width)]<MINIMUM_PASSING_RANK){
-	    		filtered_map.data[convert_to_index(i,j,width)]=0;
-	    		not_passed_count+=1;
-	    	}
-	   	}
-	}
-	ROS_INFO("Processed points count: %d", count);
-	ROS_INFO("Processed not_passed_count points count: %d", not_passed_count);
-	ROS_INFO("Finished inputGrid processing");
+  	not_passed_count=0; 
+  	for(size_t i=0;i<height;++i){
+  	  	for(size_t j=0;j<width;++j){
+  	   		ranks[convert_to_index(i,j,width)]=compute_rank(i,j,width,height);
+  	    	count++;
+  	    	if(ranks[convert_to_index(i,j,width)]<MINIMUM_PASSING_RANK){
+  	    		filtered_map.data[convert_to_index(i,j,width)]=0;
+  	    		not_passed_count+=1;
+  	    	}
+  	   	}
+  	}
+  	ROS_INFO("Processed points count: %d", count);
+  	ROS_INFO("Processed not_passed_count points count: %d", not_passed_count);
+  	ROS_INFO("Finished inputGrid processing");
 
-	ROS_INFO("Publishing...");
+  	ROS_INFO("Publishing...");
     pub_.publish(filtered_map);
     ROS_INFO("Finished publishing.");
   }

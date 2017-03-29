@@ -130,6 +130,7 @@ add_executable(map_pgm2png src/map_pgm2png.cpp)
 add_executable(world_creator src/world_creator.cpp)
 add_executable(gazebo_heightmap_preparation_node src/map_preparing_node.cpp)
 add_executable(gazebo_heightmap_preparation_pgm_node src/map_preparing_node_pgm.cpp)
+add_executable(map_preparing_test_node src/map_preparing_node_test.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -151,6 +152,11 @@ add_executable(gazebo_heightmap_preparation_pgm_node src/map_preparing_node_pgm.
  )
 
  target_link_libraries(map_pgm2png
+   ${catkin_LIBRARIES}
+   ${ImageMagick_LIBRARIES}
+ )
+
+  target_link_libraries(map_preparing_test_node
    ${catkin_LIBRARIES}
    ${ImageMagick_LIBRARIES}
  )

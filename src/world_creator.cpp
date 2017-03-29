@@ -2,8 +2,6 @@
 #include <fstream>
 #include <string>
 #include <iostream>
-#include <unistd.h>
- 
 
 #define USAGE ""
 void createWorld(std::string world_path, std::string map_path)  
@@ -106,7 +104,6 @@ int main(int argc, char **argv)
   world_path+="/generated_world.world";
   //Initiate ROS
   ros::init(argc, argv, "world_creator");
-  sleep(5);
   createWorld(world_path, map_path);
   return 0;
 }
