@@ -1,5 +1,6 @@
 #include "ros/ros.h"
 #include <Magick++.h>
+#include <map> 
 
 using namespace Magick;
 
@@ -47,9 +48,9 @@ int main(int argc, char **argv)
 
 	Image source_image(map_path);
 	size_t temp=0;
-	size_t min_width=400;
-	size_t min_height=400;
-	size_t max_size=min_width;
+	size_t min_width=source_image.baseColumns();
+	size_t min_height=source_image.baseRows();
+	size_t max_size=400; //TODO с заполением пикселей при отсутствии обрезки
 
 	for(int i=3; i<argc; i++)
 	{
@@ -129,98 +130,51 @@ int main(int argc, char **argv)
 	size_t h=sub_image.rows();
 	ROS_INFO("Height: %zu",h);
 	PixelPacket *pixels = sub_image.getPixels(0,0,w,h);
-	size_t row=0;
-	size_t column=0;
-	size_t temp_g=0;
-	size_t temp_w=0;
-	size_t temp_b=0;
+	std::map<Color,int> neighbours;
 	for(size_t i=0;i<h;i++){
 		for(size_t j=0;j<w;j++){
-			int white_count=0;
-			int gray_count=0;
-			int black_count=0;
-			if(pixels[convert_to_index(i,j,w)]==Color(65278,65278,65278)){
-	  			white_count+=1;
-	  		}
-	  		else if (pixels[convert_to_index(i,j,w)]==Color(0,0,0)){
-	  			black_count+=1;
-	  		}
-	  		else {
-	  			gray_count+=1;	  			
-	  		}
-			if (is_point_exist(i-1,j-1,w,h)){
-		  		if(pixels[convert_to_index(i-1,j-1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i-1,j-1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (is_point_exist(i-1,j,w,h)){
-		  		if(pixels[convert_to_index(i-1,j,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i-1,j,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (is_point_exist(i-1,j+1,w,h)) {
-		  		if(pixels[convert_to_index(i-1,j+1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i-1,j+1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	//same i points
-		  	if (is_point_exist(i,j-1,w,h)){
-		  		if(pixels[convert_to_index(i,j-1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i,j-1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (is_point_exist(i,j+1,w,h)){
-		  		if(pixels[convert_to_index(i,j+1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i,j+1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	//bottom three points
-		  	if (is_point_exist(i+1,j-1,w,h)){
-		  		if(pixels[convert_to_index(i+1,j-1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i+1,j-1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (is_point_exist(i+1,j,w,h)){
-		  		if(pixels[convert_to_index(i+1,j,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i+1,j,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (is_point_exist(i+1,j+1,w,h)){
-		  		if(pixels[convert_to_index(i+1,j+1,w)]==Color(65278,65278,65278))
-		  			white_count+=1;
-		  		else if (pixels[convert_to_index(i+1,j+1,w)]==Color(0,0,0))
-		  			black_count+=1;
-		  		else gray_count+=1;
-		  	}
-		  	if (white_count>black_count && white_count>gray_count){
-		  		pixels[convert_to_index(i,j,w)]=Color(65278,65278,65278);
-		  		temp_w++;
-		  	} else if(gray_count>black_count && gray_count>white_count){
-		  		pixels[convert_to_index(i,j,w)]=Color(52685,52685,52685);
-		  		temp_g++;
-		  	} else if(black_count>gray_count && black_count>white_count){
-		  		pixels[convert_to_index(i,j,w)]=Color(0,0,0);
-		  		temp_b++;
-		  	}
+			neighbours.clear();
+			//ROS_INFO("Size %zu",neighbours.size());
+			neighbours[pixels[convert_to_index(i,j,w)]]++;
+			neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
+			neighbours[pixels[convert_to_index(i-1,j,w)]]++;
+			neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
+			neighbours[pixels[convert_to_index(i,j-1,w)]]++;
+			neighbours[pixels[convert_to_index(i,j+1,w)]]++;
+			neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
+			neighbours[pixels[convert_to_index(i+1,j,w)]]++;
+			neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+			//neighbours.insert(std::pair<Color, int>(,neighbours.find(pixels[convert_to_index(i,j,w)])->second +1));
+			// int temp=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
+			// ROS_INFO("temp %d",temp);
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j,w)], 20));
+			// int temp2=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
+			// ROS_INFO("temp2 %d",temp2);
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j-1,w)],neighbours.find(pixels[convert_to_index(i-1,j-1,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j,w)],neighbours.find(pixels[convert_to_index(i-1,j,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j+1,w)],neighbours.find(pixels[convert_to_index(i-1,j+1,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j-1,w)],neighbours.find(pixels[convert_to_index(i,j-1,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j+1,w)],neighbours.find(pixels[convert_to_index(i,j+1,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j-1,w)],neighbours.find(pixels[convert_to_index(i+1,j-1,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j,w)],neighbours.find(pixels[convert_to_index(i+1,j,w)])->second + 1));
+			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j+1,w)],neighbours.find(pixels[convert_to_index(i+1,j+1,w)])->second + 1));
+
+			//ROS_INFO("Size %zu",neighbours.size());
+
+			Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
+			int max_value_count=0;
+
+			for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
+    			if (it->second>max_value_count) {
+    				max_value_count=it->second;
+    				max_value=it->first;
+    			}
+    		}
+    		//ROS_INFO("Max %d",max_value_count);
+
+  			pixels[convert_to_index(i,j,w)]=max_value;
 		}
 	}
-	ROS_INFO("w: %zu",temp_w);
-	ROS_INFO("g: %zu",temp_g);
-	ROS_INFO("b: %zu",temp_b);
 	sub_image.syncPixels();
 	sub_image.negate();
 	save_path+="/new_map.png";
