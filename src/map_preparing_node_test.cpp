@@ -12,7 +12,7 @@ using namespace Magick;
 
 
 bool is_point_exist(size_t row,size_t column,size_t width,size_t height){
-	if((row==height) || (column==width) || (row==SIZE_MAX) || (column==SIZE_MAX)) return false;
+	if((row>=height) || (column>=width) || (row==SIZE_MAX) || (column==SIZE_MAX) || (row==SIZE_MAX-1) || (column==SIZE_MAX-1) ) return false;
 	return true;
 }
 
@@ -146,11 +146,17 @@ int main(int argc, char **argv)
 			if(is_point_exist(i-1,j+1,w,h)){
 				neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
 			}
+			if(is_point_exist(i,j-2,w,h)){
+				neighbours[pixels[convert_to_index(i,j-2,w)]]++;//left
+			}
 			if(is_point_exist(i,j-1,w,h)){
 				neighbours[pixels[convert_to_index(i,j-1,w)]]++;
 			}
 			if(is_point_exist(i,j+1,w,h)){	
 				neighbours[pixels[convert_to_index(i,j+1,w)]]++;
+			}
+			if(is_point_exist(i,j+2,w,h)){
+				neighbours[pixels[convert_to_index(i,j+2,w)]]++;//right
 			}
 			if(is_point_exist(i+1,j-1,w,h)){
 				neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
@@ -160,6 +166,9 @@ int main(int argc, char **argv)
 			}
 			if(is_point_exist(i+1,j+1,w,h)){
 				neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+			}
+			if(is_point_exist(i+2,j,w,h)){
+				neighbours[pixels[convert_to_index(i+2,j,w)]]++;//bot
 			}
 			//neighbours.insert(std::pair<Color, int>(,neighbours.find(pixels[convert_to_index(i,j,w)])->second +1));
 			// int temp=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
@@ -190,6 +199,26 @@ int main(int argc, char **argv)
     		//ROS_INFO("Max %d",max_value_count);
 
   			filtered_pixels[convert_to_index(i,j,w)]=max_value;
+		}
+	}
+	for(size_t i=0;i<h;i++){
+		for(size_t j=0;j<w;j++){
+			if(is_point_exist(i-1,j,w,h) && is_point_exist(i+1,j,w,h)){
+				if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
+					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
+					filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
+					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+					filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
+				}
+			}
+			if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
+				if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
+					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
+					filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
+					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+					filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
+				}
+			}
 		}
 	}
 	//sub_image.syncPixels();
