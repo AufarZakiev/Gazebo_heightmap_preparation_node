@@ -130,20 +130,37 @@ int main(int argc, char **argv)
 	size_t h=sub_image.rows();
 	ROS_INFO("Height: %zu",h);
 	PixelPacket *pixels = sub_image.getPixels(0,0,w,h);
+	Image filtered_image(sub_image);
+	PixelPacket *filtered_pixels = filtered_image.getPixels(0,0,w,h);
 	std::map<Color,int> neighbours;
 	for(size_t i=0;i<h;i++){
 		for(size_t j=0;j<w;j++){
 			neighbours.clear();
-			//ROS_INFO("Size %zu",neighbours.size());
 			neighbours[pixels[convert_to_index(i,j,w)]]++;
-			neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
-			neighbours[pixels[convert_to_index(i-1,j,w)]]++;
-			neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
-			neighbours[pixels[convert_to_index(i,j-1,w)]]++;
-			neighbours[pixels[convert_to_index(i,j+1,w)]]++;
-			neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
-			neighbours[pixels[convert_to_index(i+1,j,w)]]++;
-			neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+			if(is_point_exist(i-1,j-1,w,h)){
+				neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
+			}
+			if(is_point_exist(i-1,j,w,h)){
+				neighbours[pixels[convert_to_index(i-1,j,w)]]++;
+			}
+			if(is_point_exist(i-1,j+1,w,h)){
+				neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
+			}
+			if(is_point_exist(i,j-1,w,h)){
+				neighbours[pixels[convert_to_index(i,j-1,w)]]++;
+			}
+			if(is_point_exist(i,j+1,w,h)){	
+				neighbours[pixels[convert_to_index(i,j+1,w)]]++;
+			}
+			if(is_point_exist(i+1,j-1,w,h)){
+				neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
+			}
+			if(is_point_exist(i+1,j,w,h)){
+				neighbours[pixels[convert_to_index(i+1,j,w)]]++;
+			}
+			if(is_point_exist(i+1,j+1,w,h)){
+				neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+			}
 			//neighbours.insert(std::pair<Color, int>(,neighbours.find(pixels[convert_to_index(i,j,w)])->second +1));
 			// int temp=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
 			// ROS_INFO("temp %d",temp);
@@ -163,7 +180,7 @@ int main(int argc, char **argv)
 
 			Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
 			int max_value_count=0;
-
+			//ROS_INFO("Max search started");
 			for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
     			if (it->second>max_value_count) {
     				max_value_count=it->second;
@@ -172,12 +189,13 @@ int main(int argc, char **argv)
     		}
     		//ROS_INFO("Max %d",max_value_count);
 
-  			pixels[convert_to_index(i,j,w)]=max_value;
+  			filtered_pixels[convert_to_index(i,j,w)]=max_value;
 		}
 	}
-	sub_image.syncPixels();
-	sub_image.negate();
+	//sub_image.syncPixels();
+	//sub_image.negate();
 	save_path+="/new_map.png";
-	sub_image.write(save_path);
+	filtered_image.write(save_path);
+	//sub_image.write(save_path);
 	return 0;
 }
