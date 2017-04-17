@@ -146,17 +146,11 @@ int main(int argc, char **argv)
 			if(is_point_exist(i-1,j+1,w,h)){
 				neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
 			}
-			if(is_point_exist(i,j-2,w,h)){
-				neighbours[pixels[convert_to_index(i,j-2,w)]]++;//left
-			}
 			if(is_point_exist(i,j-1,w,h)){
 				neighbours[pixels[convert_to_index(i,j-1,w)]]++;
 			}
 			if(is_point_exist(i,j+1,w,h)){	
 				neighbours[pixels[convert_to_index(i,j+1,w)]]++;
-			}
-			if(is_point_exist(i,j+2,w,h)){
-				neighbours[pixels[convert_to_index(i,j+2,w)]]++;//right
 			}
 			if(is_point_exist(i+1,j-1,w,h)){
 				neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
@@ -167,36 +161,14 @@ int main(int argc, char **argv)
 			if(is_point_exist(i+1,j+1,w,h)){
 				neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
 			}
-			if(is_point_exist(i+2,j,w,h)){
-				neighbours[pixels[convert_to_index(i+2,j,w)]]++;//bot
-			}
-			//neighbours.insert(std::pair<Color, int>(,neighbours.find(pixels[convert_to_index(i,j,w)])->second +1));
-			// int temp=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
-			// ROS_INFO("temp %d",temp);
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j,w)], 20));
-			// int temp2=neighbours.find(pixels[convert_to_index(i,j,w)])->second;
-			// ROS_INFO("temp2 %d",temp2);
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j-1,w)],neighbours.find(pixels[convert_to_index(i-1,j-1,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j,w)],neighbours.find(pixels[convert_to_index(i-1,j,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i-1,j+1,w)],neighbours.find(pixels[convert_to_index(i-1,j+1,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j-1,w)],neighbours.find(pixels[convert_to_index(i,j-1,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i,j+1,w)],neighbours.find(pixels[convert_to_index(i,j+1,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j-1,w)],neighbours.find(pixels[convert_to_index(i+1,j-1,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j,w)],neighbours.find(pixels[convert_to_index(i+1,j,w)])->second + 1));
-			// neighbours.insert(std::pair<Color, int>(pixels[convert_to_index(i+1,j+1,w)],neighbours.find(pixels[convert_to_index(i+1,j+1,w)])->second + 1));
-
-			//ROS_INFO("Size %zu",neighbours.size());
-
 			Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
 			int max_value_count=0;
-			//ROS_INFO("Max search started");
 			for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
     			if (it->second>max_value_count) {
     				max_value_count=it->second;
     				max_value=it->first;
     			}
     		}
-    		//ROS_INFO("Max %d",max_value_count);
 
   			filtered_pixels[convert_to_index(i,j,w)]=max_value;
 		}
@@ -221,10 +193,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	//sub_image.syncPixels();
-	//sub_image.negate();
 	save_path+="/new_map.png";
 	filtered_image.write(save_path);
-	//sub_image.write(save_path);
 	return 0;
 }
