@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 	size_t temp=0;
 	size_t min_width=source_image.baseColumns();
 	size_t min_height=source_image.baseRows();
-	size_t max_size=400; //TODO с заполением пикселей при отсутствии обрезки
+	size_t max_size=0; //TODO с заполением пикселей при отсутствии обрезки
 
 	for(int i=3; i<argc; i++)
 	{
@@ -91,25 +91,13 @@ int main(int argc, char **argv)
 		else if(!strcmp(argv[i], "-w"))
 		{
 			if(++i < argc){
-				temp = atoi(argv[i]);
-				if(temp<=source_image.baseColumns() && (temp<=(source_image.baseColumns()-x_offset))){
-					min_width = temp;
-					if(min_width>max_size){
-						max_size=min_width;
-					}
-				}
+				min_width = atoi(argv[i]);
 			}
 		}
 		else if(!strcmp(argv[i], "-h"))
 		{
 			if(++i < argc){
-				temp = atoi(argv[i]);
-				if(temp<=source_image.baseRows() && (temp<=(source_image.baseRows()-y_offset))){
-					min_height = temp;
-					if(min_height>max_size){
-						max_size=min_height;
-					}
-				}
+				min_height = atoi(argv[i]);
 			}
 		}
 		else if(!strcmp(argv[i], "-use_filtering"))
@@ -126,8 +114,15 @@ int main(int argc, char **argv)
 		}
 	}
 
-	Image sub_image(source_image);
+	if(min_width!=0){
+		max_size=min_width;
+	}
+	if(min_height>min_width){
+		max_size=min_height;
+	}
 
+	Image sub_image(source_image);
+	ROS_INFO("Min desired size: %zu",max_size);
 	size_t calculated_size=1;
 	while((calculated_size+1)<max_size){
 		calculated_size=calculated_size*2;
@@ -138,7 +133,7 @@ int main(int argc, char **argv)
 
 	sub_image.magick("png");
 	sub_image.chop(Geometry(x_offset,y_offset));
-	sub_image.crop(Geometry(calculated_size,calculated_size));
+	sub_image.extent(Geometry(calculated_size,calculated_size),Color("white"),NorthWestGravity);
 	sub_image.type(GrayscaleType);
 
 	size_t w = sub_image.columns();
@@ -181,13 +176,13 @@ int main(int argc, char **argv)
 				Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
 				int max_value_count=0;
 				for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
-	    			if (it->second>max_value_count) {
-	    				max_value_count=it->second;
-	    				max_value=it->first;
-	    			}
-	    		}
+					if (it->second>max_value_count) {
+						max_value_count=it->second;
+						max_value=it->first;
+					}
+				}
 
-	  			filtered_pixels[convert_to_index(i,j,w)]=max_value;
+				filtered_pixels[convert_to_index(i,j,w)]=max_value;
 			}
 		}
 		for(size_t i=0;i<h;i++){
@@ -196,25 +191,25 @@ int main(int argc, char **argv)
 					if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
 						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
 						filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
-						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-						filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
-					}
+					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+					filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
 				}
-				if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
-					if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
-						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
-						filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
-						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-						filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
-					}
-				}
+			}
+			if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
+				if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
+					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
+					filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
+				filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+				filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
 			}
 		}
 	}
-	if(color_inverse==true){
-		filtered_image.negate();
-	}
-	save_path+="/new_map.png";
-	filtered_image.write(save_path);
-	return 0;
+}
+}
+if(color_inverse==true){
+	filtered_image.negate();
+}
+save_path+="/new_map.png";
+filtered_image.write(save_path);
+return 0;
 }
