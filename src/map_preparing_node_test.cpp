@@ -133,7 +133,7 @@ int main(int argc, char **argv)
 
 	sub_image.magick("png");
 	sub_image.chop(Geometry(x_offset,y_offset));
-	sub_image.extent(Geometry(calculated_size,calculated_size),Color("white"),NorthWestGravity);
+	sub_image.extent(Geometry(calculated_size,calculated_size),sub_image.getPixels(0,0,sub_image.columns(),sub_image.rows())[0],NorthWestGravity);
 	sub_image.type(GrayscaleType);
 
 	size_t w = sub_image.columns();
