@@ -5,10 +5,12 @@
 using namespace Magick;
 
 #define USAGE "Usage: \n" \
-"map_saver -f <map_path> \n"\
-"map_saver -offset <x_offset> <y_offset> \n"\
-"map_saver -w <min_resulting_width> \n"\
-"map_saver -h <min_resulting_height> \n"
+"-f <map_path> \n"\
+"-offset <x_offset, px> <y_offset, px> \n"\
+"-w <min_resulting_width,px> \n"\
+"-h <min_resulting_height,px> \n"\
+"-use_filtering <true/false> \n"\
+"-color_inverse <true/false> \n"\
 
 
 bool is_point_exist(size_t row,size_t column,size_t width,size_t height){
@@ -47,6 +49,8 @@ int main(int argc, char **argv)
 	save_path=map_path.substr(0,found);
 
 	Image source_image(map_path);
+	bool use_filtering=false;
+	bool color_inverse=false;
 	size_t temp=0;
 	size_t min_width=source_image.baseColumns();
 	size_t min_height=source_image.baseRows();
@@ -108,6 +112,18 @@ int main(int argc, char **argv)
 				}
 			}
 		}
+		else if(!strcmp(argv[i], "-use_filtering"))
+		{
+			if(++i < argc){
+				use_filtering = argv[i];
+			}
+		}
+		else if(!strcmp(argv[i], "-color_inverse"))
+		{
+			if(++i < argc){
+				color_inverse = argv[i];
+			}
+		}
 	}
 
 	Image sub_image(source_image);
@@ -132,66 +148,71 @@ int main(int argc, char **argv)
 	PixelPacket *pixels = sub_image.getPixels(0,0,w,h);
 	Image filtered_image(sub_image);
 	PixelPacket *filtered_pixels = filtered_image.getPixels(0,0,w,h);
-	std::map<Color,int> neighbours;
-	for(size_t i=0;i<h;i++){
-		for(size_t j=0;j<w;j++){
-			neighbours.clear();
-			neighbours[pixels[convert_to_index(i,j,w)]]++;
-			if(is_point_exist(i-1,j-1,w,h)){
-				neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
-			}
-			if(is_point_exist(i-1,j,w,h)){
-				neighbours[pixels[convert_to_index(i-1,j,w)]]++;
-			}
-			if(is_point_exist(i-1,j+1,w,h)){
-				neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
-			}
-			if(is_point_exist(i,j-1,w,h)){
-				neighbours[pixels[convert_to_index(i,j-1,w)]]++;
-			}
-			if(is_point_exist(i,j+1,w,h)){	
-				neighbours[pixels[convert_to_index(i,j+1,w)]]++;
-			}
-			if(is_point_exist(i+1,j-1,w,h)){
-				neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
-			}
-			if(is_point_exist(i+1,j,w,h)){
-				neighbours[pixels[convert_to_index(i+1,j,w)]]++;
-			}
-			if(is_point_exist(i+1,j+1,w,h)){
-				neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
-			}
-			Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
-			int max_value_count=0;
-			for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
-    			if (it->second>max_value_count) {
-    				max_value_count=it->second;
-    				max_value=it->first;
-    			}
-    		}
+	if(use_filtering==true){
+		std::map<Color,int> neighbours;
+		for(size_t i=0;i<h;i++){
+			for(size_t j=0;j<w;j++){
+				neighbours.clear();
+				neighbours[pixels[convert_to_index(i,j,w)]]++;
+				if(is_point_exist(i-1,j-1,w,h)){
+					neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
+				}
+				if(is_point_exist(i-1,j,w,h)){
+					neighbours[pixels[convert_to_index(i-1,j,w)]]++;
+				}
+				if(is_point_exist(i-1,j+1,w,h)){
+					neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
+				}
+				if(is_point_exist(i,j-1,w,h)){
+					neighbours[pixels[convert_to_index(i,j-1,w)]]++;
+				}
+				if(is_point_exist(i,j+1,w,h)){	
+					neighbours[pixels[convert_to_index(i,j+1,w)]]++;
+				}
+				if(is_point_exist(i+1,j-1,w,h)){
+					neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
+				}
+				if(is_point_exist(i+1,j,w,h)){
+					neighbours[pixels[convert_to_index(i+1,j,w)]]++;
+				}
+				if(is_point_exist(i+1,j+1,w,h)){
+					neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+				}
+				Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
+				int max_value_count=0;
+				for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
+	    			if (it->second>max_value_count) {
+	    				max_value_count=it->second;
+	    				max_value=it->first;
+	    			}
+	    		}
 
-  			filtered_pixels[convert_to_index(i,j,w)]=max_value;
+	  			filtered_pixels[convert_to_index(i,j,w)]=max_value;
+			}
+		}
+		for(size_t i=0;i<h;i++){
+			for(size_t j=0;j<w;j++){
+				if(is_point_exist(i-1,j,w,h) && is_point_exist(i+1,j,w,h)){
+					if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
+						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
+						filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
+						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+						filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
+					}
+				}
+				if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
+					if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
+						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
+						filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
+						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+						filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
+					}
+				}
+			}
 		}
 	}
-	for(size_t i=0;i<h;i++){
-		for(size_t j=0;j<w;j++){
-			if(is_point_exist(i-1,j,w,h) && is_point_exist(i+1,j,w,h)){
-				if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
-					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
-					filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
-					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-					filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
-				}
-			}
-			if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
-				if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
-					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
-					filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
-					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-					filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
-				}
-			}
-		}
+	if(color_inverse==true){
+		filtered_image.negate();
 	}
 	save_path+="/new_map.png";
 	filtered_image.write(save_path);
