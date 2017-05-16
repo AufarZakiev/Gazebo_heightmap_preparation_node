@@ -57,7 +57,7 @@ void createWorld(std::string world_path, std::string map_path)
                 "<size>0.5</size>\n"
               "</texture>\n"
               "<blend>\n"
-                "<min_height>0.4</min_height>\n"
+                "<min_height>0.1</min_height>\n"
                 "<fade_dist>0</fade_dist>\n"
               "</blend>\n"
               "<blend>\n"

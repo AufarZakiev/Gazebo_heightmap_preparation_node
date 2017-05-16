@@ -206,6 +206,19 @@ int main(int argc, char **argv)
 			}
 		}
 }
+unsigned char *gray_pixels = new unsigned char[w*h];
+filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
+for(size_t i=0;i<h;i++){
+	for(size_t j=0;j<w;j++){
+		if (gray_pixels[convert_to_index(i,j,w)]>250)
+		{
+			gray_pixels[convert_to_index(i,j,w)]=150;
+		}else if (gray_pixels[convert_to_index(i,j,w)]>10){
+			gray_pixels[convert_to_index(i,j,w)]=255;
+		}
+	}
+}
+filtered_image.read(w, h, "I", CharPixel, gray_pixels);
 if(color_inverse==true){
 	filtered_image.negate();
 }
