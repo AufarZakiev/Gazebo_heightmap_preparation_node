@@ -124,8 +124,9 @@ include_directories(
 # add_dependencies(pcl_ros_tutorial ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Declare a C++ executable
-# add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)\
-add_executable(map_filter_node src/map_filter_node.cpp)
+# add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)
+add_executable(map_filler_node src/map_filter_node.cpp)
+add_executable(map_filter_node src/map_reader.cpp)
 add_executable(map_pgm2png src/map_pgm2png.cpp)
 add_executable(world_creator src/world_creator.cpp)
 add_executable(gazebo_heightmap_preparation_node src/map_preparing_node.cpp)
@@ -167,6 +168,10 @@ target_link_libraries(world_creator
 
 
   target_link_libraries(map_filter_node
+   ${catkin_LIBRARIES}
+ )
+
+target_link_libraries(map_filler_node
    ${catkin_LIBRARIES}
  )
 

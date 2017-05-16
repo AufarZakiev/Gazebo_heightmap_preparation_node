@@ -191,20 +191,20 @@ int main(int argc, char **argv)
 					if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
 						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
 						filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
-					filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-					filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
+						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+						filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
+					}
+				}
+				if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
+					if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
+					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
+						filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
+						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+						filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
+					}
 				}
 			}
-			if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
-				if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
-					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
-					filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
-				filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-				filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
-			}
 		}
-	}
-}
 }
 if(color_inverse==true){
 	filtered_image.negate();
