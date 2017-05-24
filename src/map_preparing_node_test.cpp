@@ -52,6 +52,8 @@ int main(int argc, char **argv)
 	bool use_filtering=false;
 	bool color_inverse=false;
 	size_t temp=0;
+	size_t bot_trshd = 205;
+	size_t top_trshd = 205;
 	size_t min_width=source_image.baseColumns();
 	size_t min_height=source_image.baseRows();
 	size_t max_size=0; //TODO с заполением пикселей при отсутствии обрезки
@@ -110,6 +112,18 @@ int main(int argc, char **argv)
 		{
 			if(++i < argc){
 				color_inverse = argv[i];
+			}
+		}
+		else if(!strcmp(argv[i], "-bot_trshd"))
+		{
+			if(++i < argc){
+				bot_trshd = atoi(argv[i]);
+			}
+		}
+		else if(!strcmp(argv[i], "-top_trshd"))
+		{
+			if(++i < argc){
+				top_trshd = atoi(argv[i]);
 			}
 		}
 	}
@@ -210,10 +224,10 @@ unsigned char *gray_pixels = new unsigned char[w*h];
 filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
 for(size_t i=0;i<h;i++){
 	for(size_t j=0;j<w;j++){
-		if (gray_pixels[convert_to_index(i,j,w)]>250)
+		if (gray_pixels[convert_to_index(i,j,w)]>bot_trshd)
 		{
 			gray_pixels[convert_to_index(i,j,w)]=150;
-		}else if (gray_pixels[convert_to_index(i,j,w)]>10){
+		}else if (gray_pixels[convert_to_index(i,j,w)]==top_trshd){
 			gray_pixels[convert_to_index(i,j,w)]=255;
 		}
 	}

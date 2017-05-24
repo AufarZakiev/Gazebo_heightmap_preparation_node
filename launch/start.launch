@@ -5,8 +5,8 @@
   <!-- pgm preparaion params -->
   <arg name="map_filepath"  default="/home/aufarz/Downloads/ANPL_map.pgm"/>
   <arg name="saving_filepath"  default="/home/aufarz/Downloads"/>
-  <arg name="offset_x" default="1900"/>
-  <arg name="offset_y" default="1900"/>
+  <arg name="offset_x" default="1800"/>
+  <arg name="offset_y" default="1800"/>
   <arg name="cropped_width" default="400"/>
   <arg name="cropped_height" default="400"/>
 
