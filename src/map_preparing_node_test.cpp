@@ -222,6 +222,7 @@ int main(int argc, char **argv)
 }
 unsigned char *gray_pixels = new unsigned char[w*h];
 filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
+ROS_INFO("top_trshd: %zu",top_trshd);
 for(size_t i=0;i<h;i++){
 	for(size_t j=0;j<w;j++){
 		if (gray_pixels[convert_to_index(i,j,w)]>bot_trshd)

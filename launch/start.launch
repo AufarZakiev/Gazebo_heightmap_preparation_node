@@ -9,6 +9,8 @@
   <arg name="offset_y" default="1800"/>
   <arg name="cropped_width" default="400"/>
   <arg name="cropped_height" default="400"/>
+  <arg name="bot_trshd" default="205"/>
+  <arg name="top_trshd" default="205"/>
 
   <!-- turtlebot params -->
 	<arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
@@ -22,9 +24,9 @@
   <arg name="use_pose_estimation" if="$(arg use_ground_truth_for_control)" default="false"/>
   <arg name="use_pose_estimation" unless="$(arg use_ground_truth_for_control)" default="true"/>
 
-  <node pkg="gazebo_heightmap_preparation" type="map_preparing_test_node" name="map_preparing_test_node" args="-f $(arg map_filepath) -s $(arg saving_filepath) -offset $(arg offset_x) $(arg offset_y) -w $(arg cropped_width) -h $(arg cropped_height) -use_filtering $(arg use_filtering) -color_inverse $(arg color_inverse)"/>
+  <node pkg="gazebo_heightmap_preparation" type="map_preparing_test_node" name="map_preparing_test_node" args="-f $(arg map_filepath) -s $(arg saving_filepath) -offset $(arg offset_x) $(arg offset_y) -w $(arg cropped_width) -h $(arg cropped_height) -use_filtering $(arg use_filtering) -color_inverse $(arg color_inverse) -bot_trshd $(arg bot_trshd) -top_trshd $(arg top_trshd)"/>
 
-  <node pkg="gazebo_heightmap_preparation" type="world_creator" name="world_creator" args="-f $(arg saving_filepath)/new_map.png"/>
+  <node pkg="gazebo_heightmap_preparation" type="world_creator" name="world_creator" args="-f $(arg saving_filepath)/new_map.png"/>s
 
   <include file="$(find gazebo_heightmap_preparation)/launch/turtlebot_heightmap_simulation.launch">
     <arg name="world_file" value="$(arg saving_filepath)/generated_world.world"/>

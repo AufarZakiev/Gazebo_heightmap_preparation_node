@@ -6,6 +6,8 @@ project(gazebo_heightmap_preparation)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
+  tf
+  gazebo_ros
 )
 
 find_package(ImageMagick COMPONENTS Magick++ REQUIRED)
@@ -126,12 +128,13 @@ include_directories(
 ## Declare a C++ executable
 # add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)
 add_executable(map_filler_node src/map_filter_node.cpp)
-add_executable(map_filter_node src/map_reader.cpp)
+add_executable(gmapped_map_processing_node src/map_reader.cpp)
 add_executable(map_pgm2png src/map_pgm2png.cpp)
 add_executable(world_creator src/world_creator.cpp)
 add_executable(gazebo_heightmap_preparation_node src/map_preparing_node.cpp)
 add_executable(gazebo_heightmap_preparation_pgm_node src/map_preparing_node_pgm.cpp)
 add_executable(map_preparing_test_node src/map_preparing_node_test.cpp)
+add_executable(my_groundtruth_broadcaster src/tf_broadcaster.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -167,13 +170,18 @@ target_link_libraries(world_creator
  )
 
 
-  target_link_libraries(map_filter_node
+  target_link_libraries(gmapped_map_processing_node
    ${catkin_LIBRARIES}
  )
 
 target_link_libraries(map_filler_node
    ${catkin_LIBRARIES}
  )
+
+ target_link_libraries(my_groundtruth_broadcaster
+   ${catkin_LIBRARIES}
+ )
+
 
 
 #############
