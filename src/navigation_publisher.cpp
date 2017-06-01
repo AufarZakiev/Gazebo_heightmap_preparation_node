@@ -25,10 +25,10 @@ int main(int argc, char** argv){
   goal.target_pose.pose.position.z = 0.0;
   goal.target_pose.pose.orientation.x = 0.0;
   goal.target_pose.pose.orientation.y = 0.0;
-  goal.target_pose.pose.orientation.z = -0.999965995354;
-  goal.target_pose.pose.orientation.w =  0.49559264763;
+  goal.target_pose.pose.orientation.z = 0.707106781;
+  goal.target_pose.pose.orientation.w =  0.707106781;
 
-  ROS_INFO("Sending goal");
+  ROS_INFO("Sending 1 goal");
   ac.sendGoal(goal);
 
   ac.waitForResult();
@@ -37,6 +37,79 @@ int main(int argc, char** argv){
     ROS_INFO("Hooray, we reached goal.");
   else
     ROS_INFO("The base failed to reach the goal.");
+
+  goal.target_pose.pose.position.x = 7.21831846237;
+  goal.target_pose.pose.position.y = 15.1885452271;
+  goal.target_pose.pose.position.z = 0.0;
+  goal.target_pose.pose.orientation.x = 0.0;
+  goal.target_pose.pose.orientation.y = 0.0;
+  goal.target_pose.pose.orientation.z = 1.0;
+  goal.target_pose.pose.orientation.w =  0.0;
+
+  ROS_INFO("Sending 2 goal");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Hooray, we reached goal.");
+  else
+    ROS_INFO("The base failed to reach the goal.");
+
+  goal.target_pose.pose.position.x = 7.21831846237;
+  goal.target_pose.pose.position.y = 15.1885452271;
+  goal.target_pose.pose.position.z = 0.0;
+  goal.target_pose.pose.orientation.x = 0.0;
+  goal.target_pose.pose.orientation.y = 0.0;
+  goal.target_pose.pose.orientation.z = -0.707106781;
+  goal.target_pose.pose.orientation.w =  0.707106781;
+
+  ROS_INFO("Sending 3 goal");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Hooray, we reached goal.");
+  else
+    ROS_INFO("The base failed to reach the goal.");
+
+  goal.target_pose.pose.position.x = 7.21831846237;
+  goal.target_pose.pose.position.y = 15.1885452271;
+  goal.target_pose.pose.position.z = 0.0;
+  goal.target_pose.pose.orientation.x = 0.0;
+  goal.target_pose.pose.orientation.y = 0.0;
+  goal.target_pose.pose.orientation.z = 0.0;
+  goal.target_pose.pose.orientation.w =  1.0;
+
+  ROS_INFO("Sending 4 goal");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Hooray, we reached goal.");
+  else
+    ROS_INFO("The base failed to reach the goal.");
+
+  goal.target_pose.pose.position.x = 7.21831846237;
+  goal.target_pose.pose.position.y = 15.1885452271;
+  goal.target_pose.pose.position.z = 0.0;
+  goal.target_pose.pose.orientation.x = 0.0;
+  goal.target_pose.pose.orientation.y = 0.0;
+  goal.target_pose.pose.orientation.z = 0.707106781;
+  goal.target_pose.pose.orientation.w =  0.707106781;
+  
+  ROS_INFO("Sending 5 goal");
+  ac.sendGoal(goal);
+
+  ac.waitForResult();
+
+  if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
+    ROS_INFO("Hooray, we reached goal.");
+  else
+    ROS_INFO("The base failed to reach the goal.");
+
 
   return 0;
 }
