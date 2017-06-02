@@ -1,7 +1,7 @@
-  #include "ros/ros.h"
-  #include "nav_msgs/OccupancyGrid.h"
-  #include "nav_msgs/MapMetaData.h"
-  #include "geometry_msgs/Pose.h"
+#include "ros/ros.h"
+#include "nav_msgs/OccupancyGrid.h"
+#include "nav_msgs/MapMetaData.h"
+#include "geometry_msgs/Pose.h"
 
 class PublishReachable
 {
@@ -12,7 +12,7 @@ public:
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/reachable_map", 1);
       //Topic you want to subscribe
     sub_ = n_.subscribe("/map", 1, &PublishReachable::callbackReachable, this);
-    temp=30;
+    temp=30; // value for visualization purposes
   }
 
   void callbackReachable(const nav_msgs::OccupancyGrid &merged_map)

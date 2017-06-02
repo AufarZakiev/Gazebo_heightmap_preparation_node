@@ -3,10 +3,6 @@
 #include "nav_msgs/MapMetaData.h"
 #include "geometry_msgs/Pose.h"
 
-#define MAX_RANK 10
-#define MIN_RANK 0
-#define MINIMUM_PASSING_RANK 4
-
 int convert_to_index(size_t i,size_t column,size_t width){
 	return (width*i)+column;
 }
@@ -81,14 +77,14 @@ public:
     gmap_.info=gmap.info;
     gmap_.data=gmap.data;
 
-	size_t gmap_width=gmap.info.width;
+	  size_t gmap_width=gmap.info.width;
     size_t gmap_height=gmap.info.height;
 
     ROS_INFO("Gmap width: %zu", gmap_width);
     ROS_INFO("Gmap height: %zu", gmap_height);
     ROS_INFO("Gmap size: %zu", gmap_height*gmap_width);
 
-	ROS_INFO("Started initial map processing");
+	  ROS_INFO("Started initial map processing");
 
     size_t initial_map_width=initial_map_.info.width;
     size_t initial_map_height=initial_map_.info.height;
@@ -123,7 +119,7 @@ private:
 int main(int argc, char **argv)
 {
   //Initiate ROS
-  ros::init(argc, argv, "gmapped_map_processing_node");;
+  ros::init(argc, argv, "maps_merging_node");;
   //Create an object of class SubscribeMap that will take care of everything
   SubscribeMap MapManager;
   SubscribeGmap GmapManager(&MapManager);
