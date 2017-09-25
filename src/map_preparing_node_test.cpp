@@ -62,7 +62,8 @@ int main(int argc, char **argv)
 	{
 		if(!strcmp(argv[i], "-s"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				save_path = argv[i];
 			}
 			else
@@ -73,7 +74,8 @@ int main(int argc, char **argv)
 		}
 		else if(!strcmp(argv[i], "-offset"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				temp = atoi(argv[i]);
 				if(temp<=source_image.baseColumns()){
 					x_offset = temp;
@@ -92,40 +94,47 @@ int main(int argc, char **argv)
 		}
 		else if(!strcmp(argv[i], "-w"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				min_width = atoi(argv[i]);
 			}
 		}
 		else if(!strcmp(argv[i], "-h"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				min_height = atoi(argv[i]);
 			}
 		}
 		else if(!strcmp(argv[i], "-use_filtering"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				use_filtering = argv[i];
 			}
 		}
 		else if(!strcmp(argv[i], "-color_inverse"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				color_inverse = argv[i];
-			}
-		}
-		else if(!strcmp(argv[i], "-bot_trshd"))
-		{
-			if(++i < argc){
-				bot_trshd = atoi(argv[i]);
 			}
 		}
 		else if(!strcmp(argv[i], "-top_trshd"))
 		{
-			if(++i < argc){
+			if(i+1 < argc){
+				i++;
 				top_trshd = atoi(argv[i]);
 			}
 		}
+		else if(!strcmp(argv[i], "-bot_trshd"))
+		{
+			if(i+1 < argc){
+				i++;
+				bot_trshd = atoi(argv[i]);
+			}
+		}
+		ROS_INFO("args: %s",argv[i]);
 	}
 
 	if(min_width!=0){
@@ -223,12 +232,13 @@ int main(int argc, char **argv)
 unsigned char *gray_pixels = new unsigned char[w*h];
 filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
 ROS_INFO("top_trshd: %zu",top_trshd);
+ROS_INFO("bot_trshd: %zu",bot_trshd);
 for(size_t i=0;i<h;i++){
 	for(size_t j=0;j<w;j++){
-		if (gray_pixels[convert_to_index(i,j,w)]>bot_trshd)
+		if (gray_pixels[convert_to_index(i,j,w)]<bot_trshd)
 		{
-			gray_pixels[convert_to_index(i,j,w)]=150;
-		}else if (gray_pixels[convert_to_index(i,j,w)]==top_trshd){
+			gray_pixels[convert_to_index(i,j,w)]=0;
+		}else if (gray_pixels[convert_to_index(i,j,w)]>top_trshd){
 			gray_pixels[convert_to_index(i,j,w)]=255;
 		}
 	}

@@ -43,14 +43,14 @@ public:
     for(size_t i=0;i<merged_map_width;++i){
      for(size_t j=0;j<merged_map_height;++j){
        if (merged_map_.data[convert_to_index(i,j)]==0){
-          is_point_reachable(i,j,0);
-       }
-     }
-   }
+        is_point_reachable(i,j,0);
+      }
+    }
+  }
 
-   pub_.publish(reachable_map_);
-   ROS_INFO("Finished merged map processing");
- }
+  pub_.publish(reachable_map_);
+  ROS_INFO("Finished merged map processing");
+}
 
 
 private:
@@ -71,40 +71,24 @@ private:
 
   void is_point_reachable(size_t i, size_t j, int step){
     step++;
-    if(step<5){
-      if(is_point_exist(i-1,j-1) && merged_map_.data[convert_to_index(i-1,j-1)]==-1){
-        reachable_map_.data[convert_to_index(i-1,j-1)]=temp;
-        is_point_reachable(i-1,j-1,step);
+      if(step<5){
+        if(is_point_exist(i-1,j) && merged_map_.data[convert_to_index(i-1,j)]==-1){
+          reachable_map_.data[convert_to_index(i-1,j)]=temp;
+          is_point_reachable(i-1,j,step);
+        }
+        if(is_point_exist(i,j-1) && merged_map_.data[convert_to_index(i,j-1)]==-1){
+          reachable_map_.data[convert_to_index(i,j-1)]=temp;
+          is_point_reachable(i,j-1,step);
+        }
+        if(is_point_exist(i,j+1) && merged_map_.data[convert_to_index(i,j+1)]==-1){
+          reachable_map_.data[convert_to_index(i,j+1)]=temp;
+          is_point_reachable(i,j+1,step);
+        }
+        if(is_point_exist(i+1,j) && merged_map_.data[convert_to_index(i+1,j)]==-1){
+          reachable_map_.data[convert_to_index(i+1,j)]=temp;
+          is_point_reachable(i+1,j,step);
+        }
       }
-      if(is_point_exist(i-1,j) && merged_map_.data[convert_to_index(i-1,j)]==-1){
-        reachable_map_.data[convert_to_index(i-1,j)]=temp;
-        is_point_reachable(i-1,j,step);
-      }
-      if(is_point_exist(i-1,j+1) && merged_map_.data[convert_to_index(i-1,j+1)]==-1){
-        reachable_map_.data[convert_to_index(i-1,j+1)]=temp;
-        is_point_reachable(i-1,j+1,step);
-      }
-      if(is_point_exist(i,j-1) && merged_map_.data[convert_to_index(i,j-1)]==-1){
-        reachable_map_.data[convert_to_index(i,j-1)]=temp;
-        is_point_reachable(i,j-1,step);
-      }
-      if(is_point_exist(i,j+1) && merged_map_.data[convert_to_index(i,j+1)]==-1){
-        reachable_map_.data[convert_to_index(i,j+1)]=temp;
-        is_point_reachable(i,j+1,step);
-      }
-      if(is_point_exist(i+1,j-1) && merged_map_.data[convert_to_index(i+1,j-1)]==-1){
-        reachable_map_.data[convert_to_index(i+1,j-1)]=temp;
-        is_point_reachable(i+1,j-1,step);
-      }
-      if(is_point_exist(i+1,j) && merged_map_.data[convert_to_index(i+1,j)]==-1){
-        reachable_map_.data[convert_to_index(i+1,j)]=temp;
-        is_point_reachable(i+1,j,step);
-      }
-      if(is_point_exist(i+1,j+1) && merged_map_.data[convert_to_index(i+1,j+1)]==-1){
-        reachable_map_.data[convert_to_index(i+1,j+1)]=temp;
-        is_point_reachable(i+1,j+1,step);
-      }
-    }
   }
 };
 
