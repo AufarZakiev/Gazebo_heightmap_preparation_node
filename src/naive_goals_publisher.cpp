@@ -126,12 +126,11 @@ public:
     for(size_t k=0;k<known_map_width*known_map_height;++k){
       empty.push_back(-1);
     }
-    //std::priority_queue <WeightedCell*, std::vector<WeightedCell*>,WeightedCellCompare> goals_queue;
     WeightedCell maxCell(0,0,0,0);
     for(size_t i=0;i<known_map_height;++i){
       for(size_t j=0;j<known_map_width;++j){
         aimed_map_.data=empty;
-        if (known_map_.data[convert_to_index(i,j)]==0){
+        if (known_map_.data[convert_to_index(i,j)]==0 && is_point_frontier(i,j)){
           size_t reachable_count=0;
           size_t free_count=0;
           for(int xi=-40;xi<40;++xi){
@@ -155,59 +154,17 @@ public:
       }
     }
     pub_.publish(max_map_);
-
+    
     ROS_INFO("Top is: %zu",maxCell.weight);
     ROS_INFO("Top_x is: %zu",maxCell.cell_x);
     ROS_INFO("Top_y is: %zu",maxCell.cell_y);
-  
+    
+    //tell the action client that we want to spin a thread by default
     MoveBaseClient ac("move_base", true);
 
     move_base_msgs::MoveBaseGoal goal;
-    ROS_INFO("Prev goal x is: %zu",prev_goal.cell_x);
-    ROS_INFO("Prev goal y is: %zu",prev_goal.cell_y);
-    // search for small reachable regions
-    size_t temp_x=abs(prev_goal.cell_x-maxCell.cell_x)*known_map_.info.resolution;
-    size_t temp_y=abs(prev_goal.cell_y-maxCell.cell_y)*known_map_.info.resolution;
-    double boundary_dist = sqrt(temp_x*temp_x+temp_y*temp_y);
-    ROS_INFO("Euclid distance is: %f",boundary_dist);
 
-    WeightedCell maxLocalCell(0,0,0,0);
-    for(size_t i=0;i<known_map_height;++i){
-      for(size_t j=0;j<known_map_width;++j){
-        temp_x=abs(prev_goal.cell_x-j)*known_map_.info.resolution;
-        temp_y=abs(prev_goal.cell_y-i)*known_map_.info.resolution;
-        if(sqrt(temp_x*temp_x+temp_y*temp_y)<boundary_dist){
-          aimed_map_.data=empty;
-          if (known_map_.data[convert_to_index(i,j)]==0){
-            size_t reachable_count=0;
-            size_t free_count=0;
-            for(int xi=-40;xi<40;++xi){
-              for(int yi=-40;yi<40;++yi){
-                if(sqrt(xi*xi+yi*yi)<35.0 && 
-                  is_point_exist(i+xi,j+yi)){
-                  if(reachable_map_.data[convert_to_index(i+xi,j+yi)]==temp){
-                    reachable_count++;
-                    aimed_map_.data[convert_to_index(i+xi,j+yi)]=70;
-                  }else{
-                    free_count++;
-                  }
-                }
-              }  
-            }
-            if(reachable_count!=0 && reachable_count>maxLocalCell.weight){
-              maxLocalCell=WeightedCell(i,j,reachable_count,free_count);
-              max_map_.data=aimed_map_.data;
-            }
-          }
-        }
-      }
-    }
-    pub_.publish(max_map_);
-
-    ROS_INFO("LocalTop is: %zu",maxLocalCell.weight);
-    ROS_INFO("LocalTop_x is: %f",(known_map_.info.resolution*maxLocalCell.cell_x)-30.0);
-    ROS_INFO("LocalTop_y is: %f",(known_map_.info.resolution*maxLocalCell.cell_y)-30.0);
-
+    //wait for the action server to come up
     while(!ac.waitForServer(ros::Duration(5.0))){
       ROS_INFO("Waiting for the move_base action server to come up");
     }
@@ -215,8 +172,8 @@ public:
     goal.target_pose.header.frame_id = "map";
     goal.target_pose.header.stamp = ros::Time::now();
 
-    goal.target_pose.pose.position.x = (known_map_.info.resolution*maxLocalCell.cell_x)-30.0;
-    goal.target_pose.pose.position.y = (known_map_.info.resolution*maxLocalCell.cell_y)-30.0;
+    goal.target_pose.pose.position.x = (known_map_.info.resolution*maxCell.cell_x)-30.0;
+    goal.target_pose.pose.position.y = (known_map_.info.resolution*maxCell.cell_y)-30.0;
     goal.target_pose.pose.position.z = 0.0;
     goal.target_pose.pose.orientation.x = 0.0;
     goal.target_pose.pose.orientation.y = 0.0;
@@ -228,22 +185,10 @@ public:
 
     ac.waitForResult();
 
-    goal.target_pose.pose.orientation.x = 0.0;
-    goal.target_pose.pose.orientation.y = 0.0;
-    goal.target_pose.pose.orientation.z = -0.707106781;
-    goal.target_pose.pose.orientation.w =  0.707106781;
-
-    ROS_INFO("Sending Local goal");
-    ac.sendGoal(goal);
-
-    ac.waitForResult();
-    
     if(ac.getState() == actionlib::SimpleClientGoalState::SUCCEEDED)
       ROS_INFO("Hooray, we reached goal.");
     else
-      ROS_INFO("The base failed to reach the goal.");
-
-    prev_goal=maxLocalCell;    
+      ROS_INFO("The base failed to reach the goal.");    
   }
 private:
   SubscribeMap *map_manager_;
@@ -267,6 +212,18 @@ private:
     // ROS_INFO("Exist? %s",(row>=known_map_.info.height)?"false":"true");
     if((row>=known_map_.info.height) || (column>=known_map_.info.width)) return false;
     return true;
+  }
+
+  bool is_point_frontier(size_t row,size_t column){
+    if((known_map_.data[convert_to_index(row-1,column-1)]==-1) ||
+      (known_map_.data[convert_to_index(row-1,column)]==-1) ||
+      (known_map_.data[convert_to_index(row-1,column+1)]==-1) ||
+      (known_map_.data[convert_to_index(row,column-1)]==-1) ||
+      (known_map_.data[convert_to_index(row,column+1)]==-1) ||
+      (known_map_.data[convert_to_index(row+1,column-1)]==-1) ||
+      (known_map_.data[convert_to_index(row+1,column)]==-1) || 
+      (known_map_.data[convert_to_index(row+1,column+1)]==-1)) return true;
+    return false;  
   }
 };
 

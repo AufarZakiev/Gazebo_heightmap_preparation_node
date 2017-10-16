@@ -56,6 +56,7 @@ int main(int argc, char **argv)
 	size_t top_trshd = 205;
 	size_t min_width=source_image.baseColumns();
 	size_t min_height=source_image.baseRows();
+	size_t filter_iterations = 1;
 	size_t max_size=0; //TODO с заполением пикселей при отсутствии обрезки
 
 	for(int i=3; i<argc; i++)
@@ -110,14 +111,22 @@ int main(int argc, char **argv)
 		{
 			if(i+1 < argc){
 				i++;
-				use_filtering = argv[i];
+				if(!strcmp(argv[i],"true")){
+					use_filtering = true;
+				}else{
+					use_filtering = false;
+				}
 			}
 		}
 		else if(!strcmp(argv[i], "-color_inverse"))
 		{
 			if(i+1 < argc){
 				i++;
-				color_inverse = argv[i];
+				if(!strcmp(argv[i],"true")){
+					color_inverse = true;
+				}else{
+					color_inverse = false;
+				}
 			}
 		}
 		else if(!strcmp(argv[i], "-top_trshd"))
@@ -134,9 +143,18 @@ int main(int argc, char **argv)
 				bot_trshd = atoi(argv[i]);
 			}
 		}
+		else if(!strcmp(argv[i], "-iter"))
+		{
+			if(i+1 < argc){
+				i++;
+				filter_iterations = atoi(argv[i]);
+			}
+		}
 		ROS_INFO("args: %s",argv[i]);
 	}
 
+
+	ROS_INFO("Bools: %d %d",use_filtering,color_inverse);
 	if(min_width!=0){
 		max_size=min_width;
 	}
@@ -163,91 +181,101 @@ int main(int argc, char **argv)
 	ROS_INFO("Width: %zu",w);
 	size_t h=sub_image.rows();
 	ROS_INFO("Height: %zu",h);
-	PixelPacket *pixels = sub_image.getPixels(0,0,w,h);
+	
 	Image filtered_image(sub_image);
-	PixelPacket *filtered_pixels = filtered_image.getPixels(0,0,w,h);
-	if(use_filtering==true){
-		std::map<Color,int> neighbours;
-		for(size_t i=0;i<h;i++){
-			for(size_t j=0;j<w;j++){
-				neighbours.clear();
-				neighbours[pixels[convert_to_index(i,j,w)]]++;
-				if(is_point_exist(i-1,j-1,w,h)){
-					neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
-				}
-				if(is_point_exist(i-1,j,w,h)){
-					neighbours[pixels[convert_to_index(i-1,j,w)]]++;
-				}
-				if(is_point_exist(i-1,j+1,w,h)){
-					neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
-				}
-				if(is_point_exist(i,j-1,w,h)){
-					neighbours[pixels[convert_to_index(i,j-1,w)]]++;
-				}
-				if(is_point_exist(i,j+1,w,h)){	
-					neighbours[pixels[convert_to_index(i,j+1,w)]]++;
-				}
-				if(is_point_exist(i+1,j-1,w,h)){
-					neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
-				}
-				if(is_point_exist(i+1,j,w,h)){
-					neighbours[pixels[convert_to_index(i+1,j,w)]]++;
-				}
-				if(is_point_exist(i+1,j+1,w,h)){
-					neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
-				}
-				Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
-				int max_value_count=0;
-				for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
-					if (it->second>max_value_count) {
-						max_value_count=it->second;
-						max_value=it->first;
-					}
-				}
 
-				filtered_pixels[convert_to_index(i,j,w)]=max_value;
+	unsigned char *gray_pixels = new unsigned char[w*h];
+	filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
+	ROS_INFO("top_trshd: %zu",top_trshd);
+	ROS_INFO("bot_trshd: %zu",bot_trshd);
+	for(size_t i=0;i<h;i++){
+		for(size_t j=0;j<w;j++){
+			if (gray_pixels[convert_to_index(i,j,w)]<bot_trshd)
+			{
+				gray_pixels[convert_to_index(i,j,w)]=0;
+			}else if (gray_pixels[convert_to_index(i,j,w)]>=top_trshd){
+				gray_pixels[convert_to_index(i,j,w)]=255;
 			}
-		}
-		for(size_t i=0;i<h;i++){
-			for(size_t j=0;j<w;j++){
-				if(is_point_exist(i-1,j,w,h) && is_point_exist(i+1,j,w,h)){
-					if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
-						pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
-						filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
-						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-						filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
-					}
-				}
-				if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
-					if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
-					pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
-						filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
-						filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
-						filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
-					}
-				}
-			}
-		}
-}
-unsigned char *gray_pixels = new unsigned char[w*h];
-filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
-ROS_INFO("top_trshd: %zu",top_trshd);
-ROS_INFO("bot_trshd: %zu",bot_trshd);
-for(size_t i=0;i<h;i++){
-	for(size_t j=0;j<w;j++){
-		if (gray_pixels[convert_to_index(i,j,w)]<bot_trshd)
-		{
-			gray_pixels[convert_to_index(i,j,w)]=0;
-		}else if (gray_pixels[convert_to_index(i,j,w)]>top_trshd){
-			gray_pixels[convert_to_index(i,j,w)]=255;
 		}
 	}
-}
-filtered_image.read(w, h, "I", CharPixel, gray_pixels);
-if(color_inverse==true){
-	filtered_image.negate();
-}
-save_path+="/new_map.png";
-filtered_image.write(save_path);
-return 0;
+	filtered_image.read(w, h, "I", CharPixel, gray_pixels);
+
+	PixelPacket *pixels = filtered_image.getPixels(0,0,w,h);
+	PixelPacket *filtered_pixels = filtered_image.getPixels(0,0,w,h);
+
+	if(use_filtering==true){
+		std::map<Color,int> neighbours;
+		for(size_t count=0;count<filter_iterations;count++){
+			for(size_t i=0;i<h;i++){
+				for(size_t j=0;j<w;j++){
+					neighbours.clear();
+					neighbours[pixels[convert_to_index(i,j,w)]]++;
+					if(is_point_exist(i-1,j-1,w,h)){
+						neighbours[pixels[convert_to_index(i-1,j-1,w)]]++;
+					}
+					if(is_point_exist(i-1,j,w,h)){
+						neighbours[pixels[convert_to_index(i-1,j,w)]]++;
+					}
+					if(is_point_exist(i-1,j+1,w,h)){
+						neighbours[pixels[convert_to_index(i-1,j+1,w)]]++;
+					}
+					if(is_point_exist(i,j-1,w,h)){
+						neighbours[pixels[convert_to_index(i,j-1,w)]]++;
+					}
+					if(is_point_exist(i,j+1,w,h)){	
+						neighbours[pixels[convert_to_index(i,j+1,w)]]++;
+					}
+					if(is_point_exist(i+1,j-1,w,h)){
+						neighbours[pixels[convert_to_index(i+1,j-1,w)]]++;
+					}
+					if(is_point_exist(i+1,j,w,h)){
+						neighbours[pixels[convert_to_index(i+1,j,w)]]++;
+					}
+					if(is_point_exist(i+1,j+1,w,h)){
+						neighbours[pixels[convert_to_index(i+1,j+1,w)]]++;
+					}
+					Color max_value=neighbours.find(pixels[convert_to_index(i,j,w)])->first;
+					int max_value_count=0;
+					for (std::map<Color,int>::iterator it=neighbours.begin(); it!=neighbours.end(); ++it){
+						if (it->second>max_value_count) {
+							max_value_count=it->second;
+							max_value=it->first;
+						}
+					}
+
+					filtered_pixels[convert_to_index(i,j,w)]=max_value;
+				}
+			}
+			if(false){
+				for(size_t i=0;i<h;i++){
+					for(size_t j=0;j<w;j++){
+						if(is_point_exist(i-1,j,w,h) && is_point_exist(i+1,j,w,h)){
+							if (pixels[convert_to_index(i-1,j,w)]==pixels[convert_to_index(i,j,w)] && 
+								pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i+1,j,w)]){
+								filtered_pixels[convert_to_index(i-1,j,w)]=pixels[convert_to_index(i-1,j,w)];
+								filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+								filtered_pixels[convert_to_index(i+1,j,w)]=pixels[convert_to_index(i+1,j,w)];
+							}
+						}
+						if(is_point_exist(i,j-1,w,h) && is_point_exist(i,j+1,w,h)){
+							if (pixels[convert_to_index(i,j-1,w)]==pixels[convert_to_index(i,j,w)] && 
+							pixels[convert_to_index(i,j,w)]==pixels[convert_to_index(i,j+1,w)]){
+								filtered_pixels[convert_to_index(i,j-1,w)]=pixels[convert_to_index(i,j-1,w)];
+								filtered_pixels[convert_to_index(i,j,w)]=pixels[convert_to_index(i,j,w)];
+								filtered_pixels[convert_to_index(i,j+1,w)]=pixels[convert_to_index(i,j+1,w)];
+							}
+						}
+					}
+				}
+			}
+			pixels=filtered_pixels;
+		}
+	}
+	
+	if(color_inverse==true){
+		filtered_image.negate();
+	}
+	save_path+="/new_map.png";
+	filtered_image.write(save_path);
+	return 0;
 }

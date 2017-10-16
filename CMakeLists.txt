@@ -134,7 +134,8 @@ add_executable(my_groundtruth_broadcaster src/tf_broadcaster.cpp)
 add_executable(navigation_publisher src/navigation_publisher.cpp)
 add_executable(reachable_unknown_publisher src/reachable_unknown_publisher.cpp)
 add_executable(goals_publisher src/goals_publisher.cpp)
-
+add_executable(naive_goals_publisher src/naive_goals_publisher.cpp)
+add_executable(naive_reachable_unknown_publisher src/naive_reachable_unknown_publisher.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -175,6 +176,13 @@ target_link_libraries(goals_publisher
    ${catkin_LIBRARIES}
  )
 
+target_link_libraries(naive_reachable_unknown_publisher
+   ${catkin_LIBRARIES}
+ )
+
+target_link_libraries(naive_goals_publisher
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##
