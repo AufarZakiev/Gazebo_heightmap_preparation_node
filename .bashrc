@@ -1,0 +1,1 @@
+export TURTLEBOT_3D_SENSOR=kinect
