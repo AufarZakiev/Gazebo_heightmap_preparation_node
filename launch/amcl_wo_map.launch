@@ -18,7 +18,7 @@
   </include>
 
   <!-- Move base -->
-  <include file="$(find gazebo_heightmap_preparation)/launch/includes/move_base.launch.xml">
+  <include file="$(find gazebo_heightmap_preparation)/launch/includes/move_base_test.launch.xml">
     <arg name="odom_frame_id"   default="$(arg robot_name)/odom"/>
     <arg name="base_frame_id"   default="$(arg robot_name)/base_footprint"/>
     <arg name="global_frame_id" default="map"/>
