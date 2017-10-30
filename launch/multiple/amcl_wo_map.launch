@@ -1,7 +1,12 @@
 <launch>
-  <arg name="robot_name" default="robot1_tf" />
   <arg name="3d_sensor" default="$(env TURTLEBOT_3D_SENSOR)"/>  
-
+  <arg name="tf_prefix" default=""/>
+  <arg name="ns" default="" />
+  <!-- Map server -->
+  <arg name="map_file" default="/home/aufarz/Downloads/ANPL_map_clean/ANPL_map_clean.yaml"/>
+  <node name="map_server" pkg="map_server" type="map_server" args="$(arg map_file)">
+    <param name="frame_id" value="/$(arg tf_prefix)/map"/>
+  </node>
   <!-- AMCL -->
   <arg name="custom_amcl_launch_file" default="$(find gazebo_heightmap_preparation)/launch/multiple/includes/amcl/$(arg 3d_sensor)_amcl.launch.xml"/>
   <arg name="initial_pose_x" default="0.0"/> 
@@ -11,18 +16,19 @@
     <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
     <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
     <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
-    <arg name="odom_frame_id"   default="$(arg robot_name)/odom"/>
-    <arg name="base_frame_id"   default="$(arg robot_name)/base_footprint"/>
-    <arg name="scan_topic"      default="/turtlebot1/scan"/>
-    <arg name="global_frame_id" default="map"/>
+    <arg name="odom_frame_id"   default="$(arg tf_prefix)/odom"/>
+    <arg name="base_frame_id"   default="$(arg tf_prefix)/base_footprint"/>
+    <arg name="scan_topic"      default="scan"/>
+    <arg name="global_frame_id" default="$(arg tf_prefix)/map"/>
   </include>
 
   <!-- Move base -->
   <include file="$(find gazebo_heightmap_preparation)/launch/multiple/includes/move_base_test.launch.xml">
-    <arg name="odom_frame_id"   default="$(arg robot_name)/odom"/>
-    <arg name="base_frame_id"   default="$(arg robot_name)/base_footprint"/>
+    <arg name="odom_frame_id"   default="odom"/>
+    <arg name="base_frame_id"   default="base_footprint"/>
     <arg name="global_frame_id" default="map"/>
-    <arg name="odom_topic" default="/turtlebot1/odom" />
+    <arg name="odom_topic" default="odom" />
+    <arg name="ns" value="$(arg ns)" />
   </include>
 
 </launch>

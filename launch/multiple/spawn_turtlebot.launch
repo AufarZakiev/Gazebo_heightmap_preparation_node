@@ -5,32 +5,39 @@
   <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
   <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro --> 
 
-  <arg name="tf_prefix" default="robot1_tf"/>
+  <arg name="tf_prefix" default=""/>
+  <arg name="ns" default="" />
   <arg name="x" default="0"/>
   <arg name="y" default="0"/>
   <arg name="z" default="0.1"/>
 
-   <include file="$(find gazebo_heightmap_preparation)/launch/multiple/includes/$(arg base).launch.xml">
+  <include file="$(find gazebo_heightmap_preparation)/launch/multiple/includes/$(arg base).launch.xml">
     <arg name="base" value="$(arg base)"/>
     <arg name="stacks" value="$(arg stacks)"/>
     <arg name="3d_sensor" value="$(arg 3d_sensor)"/>
-    <arg name="x" value="$(arg x)"/>
-    <arg name="y" value="$(arg y)"/>
-    <arg name="z" value="$(arg z)"/>
+    <arg name="x" default="$(arg x)"/>
+    <arg name="y" default="$(arg y)"/>
+    <arg name="z" default="$(arg z)"/>
+    <arg name="ns" value="$(arg ns)" />
   </include>
   
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="30.0" />
   </node>
-
+  
   <!-- Fake laser -->
   <node pkg="nodelet" type="nodelet" name="laserscan_nodelet_manager" args="manager"/>
   <node pkg="nodelet" type="nodelet" name="depthimage_to_laserscan"
         args="load depthimage_to_laserscan/DepthImageToLaserScanNodelet laserscan_nodelet_manager">
     <param name="scan_height" value="10"/>
-    <param name="output_frame_id" value="/robot1_tf/camera_depth_frame"/>
+    <param name="output_frame_id" value="$(arg tf_prefix)/camera_depth_frame"/>
     <param name="range_min" value="0.45"/>
-    <remap from="image" to="/turtlebot1/camera/depth/image_raw"/>
-    <remap from="scan" to="/turtlebot1/scan"/> 
+    <remap from="image" to="camera/depth/image_raw"/>
+    <remap from="scan" to="scan"/>
   </node>
+
+  <include file="$(find gazebo_heightmap_preparation)/launch/multiple/amcl_wo_map.launch" > 
+    <arg name="tf_prefix" value="$(arg tf_prefix)" />
+    <arg name="ns" value="$(arg ns)" />
+  </include>
 </launch>
