@@ -18,12 +18,24 @@
   </include>
 
   <group ns="turtlebot1">
+    <param name="tf_prefix" value="robot1_tf"/>
     <include file="$(find gazebo_heightmap_preparation)/launch/multiple/spawn_turtlebot.launch" >
       <arg name="x" default="$(arg x)"/>
       <arg name="y" default="$(arg y)"/>
       <arg name="z" default="$(arg z)"/>
       <arg name="tf_prefix" value="robot1_tf" />
       <arg name="ns" value="turtlebot1" />
+    </include>
+  </group>
+
+  <group ns="turtlebot2">
+    <param name="tf_prefix" value="robot2_tf"/>
+    <include file="$(find gazebo_heightmap_preparation)/launch/multiple/spawn_turtlebot.launch" >
+      <arg name="x" default="-5"/>
+      <arg name="y" default="-5"/>
+      <arg name="z" default="0.1"/>
+      <arg name="tf_prefix" value="robot2_tf" />
+      <arg name="ns" value="turtlebot2" />
     </include>
   </group>
 </launch>

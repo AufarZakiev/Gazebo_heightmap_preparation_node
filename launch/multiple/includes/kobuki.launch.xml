@@ -15,7 +15,7 @@
         args="-x $(arg x)
               -y $(arg y)                         
               -z $(arg z)
-              -unpause -urdf -param robot_description -model mobile_base"/>
+              -unpause -urdf -param robot_description -model $(arg ns)_mobile_base"/>
   
   <!-- Velocity muxer -->
   <node pkg="nodelet" type="nodelet" name="mobile_base_nodelet_manager" args="manager"/>

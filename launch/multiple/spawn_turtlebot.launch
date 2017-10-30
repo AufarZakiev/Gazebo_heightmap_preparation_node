@@ -21,6 +21,8 @@
     <arg name="ns" value="$(arg ns)" />
   </include>
   
+  <node pkg="tf" type="static_transform_publisher" name="$(arg tf_prefix)_broadcaster" args="0 0 0 0 0 0 1 world $(arg tf_prefix)/map 100" />
+
   <node pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher">
     <param name="publish_frequency" type="double" value="30.0" />
   </node>
@@ -39,5 +41,8 @@
   <include file="$(find gazebo_heightmap_preparation)/launch/multiple/amcl_wo_map.launch" > 
     <arg name="tf_prefix" value="$(arg tf_prefix)" />
     <arg name="ns" value="$(arg ns)" />
+    <arg name="initial_pose_x" value="$(arg x)"/>
+    <arg name="initial_pose_y" value="$(arg y)"/>
+    <arg name="initial_pose_a" value="$(arg z)"/>
   </include>
 </launch>
