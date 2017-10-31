@@ -7,6 +7,7 @@
 #include "math.h"
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include "nav_msgs/GetPlan.h"
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
@@ -188,6 +189,11 @@ public:
     MoveBaseClient ac("move_base", true);
 
     move_base_msgs::MoveBaseGoal goal;
+    geometry_msgs::PoseStamped start;
+
+    start.pose.position.x = (known_map_.info.resolution * prev_goal.cell_x) - 30.0;
+    start.pose.position.y = (known_map_.info.resolution * prev_goal.cell_y) - 30.0;
+    start.pose.position.z = 0.0;
 
     while (!ac.waitForServer(ros::Duration(5.0))) {
       ROS_INFO("Waiting for the move_base action server to come up");
@@ -214,13 +220,31 @@ public:
     goal.target_pose.pose.orientation.z = 0.707106781;
     goal.target_pose.pose.orientation.w =  0.707106781;
 
-    ROS_INFO("Sending Global goal");
-    ac.sendGoal(goal);
+    //ROS_INFO("Sending Global goal");
+    //ac.sendGoal(goal);
+    ros::ServiceClient client = n_.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
+    nav_msgs::GetPlan srv;
+    srv.request.start = start;
+    srv.request.goal = goal.target_pose;
+    srv.request.tolerance = 0.1;
 
-    if (path_manager_->getPath().poses.size() != 0) {
+    nav_msgs::Path globalpath;
+    for (;;) {
+      if (client.call(srv)) {
+        ROS_INFO("Make plan succeded!");
+        globalpath=srv.response.plan;
+        break;
+      }else{
+        ROS_INFO("Make plan failed!");
+      }
+    }
+
+    ROS_INFO("Calculating local goals: ");
+
+    if (globalpath.poses.size() != 0) {
       bool found = false;
-      for (size_t k = 0; k < path_manager_->getPath().poses.size(); k++) {
-        geometry_msgs::Pose pose = path_manager_->getPath().poses[k].pose;
+      for (size_t k = 0; k < globalpath.poses.size(); k++) {
+        geometry_msgs::Pose pose = globalpath.poses[k].pose;
         ROS_INFO("Path's position x %f", pose.position.x);
         ROS_INFO("Path's position y %f", pose.position.y);
         size_t x = (size_t)((pose.position.x + 30.0) / known_map_.info.resolution);

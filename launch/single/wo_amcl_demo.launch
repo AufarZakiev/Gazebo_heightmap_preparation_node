@@ -12,6 +12,7 @@
     <arg name="custom_param_file" value="$(arg custom_param_file)"/>
   </include>
 
+<node name="ground_truth_to_tf" pkg="tf" type="static_transform_publisher" args="-30 -30 0 0 0 map gmapping_frame 100"/>
 
     <!-- Gmapping -->
   <arg name="custom_gmapping_launch_file" default="$(find turtlebot_navigation)/launch/includes/gmapping/$(arg 3d_sensor)_gmapping2.launch.xml"/>
