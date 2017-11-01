@@ -11,35 +11,6 @@
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
 
-class SubscribePath
-{
-public:
-  SubscribePath()
-  {
-    //Topic you want to subscribe
-    sub_ = n_.subscribe("/move_base/GlobalPlanner/plan", 1, &SubscribePath::callbackPath, this);
-  }
-
-  void callbackPath(const nav_msgs::Path &path)
-  {
-    ROS_INFO("CallbackPath started");
-
-    path_ = path;
-
-    ROS_INFO("CallbackPath finished");
-  }
-
-  nav_msgs::Path getPath() {
-    return path_;
-  }
-
-private:
-  ros::NodeHandle n_;
-  ros::Subscriber sub_;
-  nav_msgs::Path path_;
-};
-
-
 class SubscribeMap
 {
 public:
@@ -105,11 +76,10 @@ public:
 class SubscribeReachable
 {
 public:
-  SubscribeReachable(SubscribeMap *map_manager, SubscribePath *path_manager): prev_goal(256, 256, 0, 0)
+  SubscribeReachable(SubscribeMap *map_manager): prev_goal(256, 256, 0, 0)
   {
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/aimed_map", 1);
     map_manager_ = map_manager;
-    path_manager_ = path_manager;
     //Topic you want to subscribe
     sub_ = n_.subscribe("/reachable_map", 1, &SubscribeReachable::callbackReachable, this);
     temp = 30;
@@ -232,9 +202,9 @@ public:
     for (;;) {
       if (client.call(srv)) {
         ROS_INFO("Make plan succeded!");
-        globalpath=srv.response.plan;
+        globalpath = srv.response.plan;
         break;
-      }else{
+      } else {
         ROS_INFO("Make plan failed!");
       }
     }
@@ -265,7 +235,7 @@ public:
               // ROS_INFO("I, J: %zu,%zu", i, j);
               double tg = ((double)i - (double)y) / ((double)j - (double)x);
               // ROS_INFO("Tangens: %f", tg); //колво клеток по x, после которых нужно делать сдвиг по y
-              //первый случай
+              //первый случай, первая четверть
               if (j > x) {
                 if (i > y) {
                   size_t lx = j;
@@ -277,6 +247,8 @@ public:
                       if (known_map_.data[convert_to_index(ly, lx)] == 0) {
                         maxLocalGoal = WeightedCell(ly, lx, 0, 0);
                         maxLocalCell = WeightedCell(i, j, 0, 0);
+                        goal.target_pose.pose.orientation.z = 0.38268343236;
+                        goal.target_pose.pose.orientation.w =  0.92387953251;
                         found = true;
                         break;
                       }
@@ -288,7 +260,7 @@ public:
                   }
                 }
               }
-              //второй случай
+              //второй случай, четвертая четверть
               if (j > x) {
                 if (i < y) {
                   size_t lx = j;
@@ -300,6 +272,8 @@ public:
                       if (known_map_.data[convert_to_index(ly, lx)] == 0) {
                         maxLocalGoal = WeightedCell(ly, lx, 0, 0);
                         maxLocalCell = WeightedCell(i, j, 0, 0);
+                        goal.target_pose.pose.orientation.z = -0.38268343236;
+                        goal.target_pose.pose.orientation.w =  0.92387953251;
                         found = true;
                         break;
                       }
@@ -311,7 +285,7 @@ public:
                   }
                 }
               }
-              //третий случай
+              //третий случай, вторая четверть
               if (j < x) {
                 if (i > y) {
                   size_t lx = j;
@@ -323,6 +297,8 @@ public:
                       if (known_map_.data[convert_to_index(ly, lx)] == 0) {
                         maxLocalGoal = WeightedCell(ly, lx, 0, 0);
                         maxLocalCell = WeightedCell(i, j, 0, 0);
+                        goal.target_pose.pose.orientation.z = 0.92387953251;
+                        goal.target_pose.pose.orientation.w = 0.38268343236;
                         found = true;
                         break;
                       }
@@ -334,7 +310,7 @@ public:
                   }
                 }
               }
-              //четвертый случай
+              //четвертый случай, вторая четверть.
               if (j < x) {
                 if (i < y) {
                   size_t lx = j;
@@ -346,6 +322,8 @@ public:
                       if (known_map_.data[convert_to_index(ly, lx)] == 0) {
                         maxLocalGoal = WeightedCell(ly, lx, 0, 0);
                         maxLocalCell = WeightedCell(i, j, 0, 0);
+                        goal.target_pose.pose.orientation.z = -0.92387953251;
+                        goal.target_pose.pose.orientation.w = 0.38268343236;
                         found = true;
                         break;
                       }
@@ -381,8 +359,6 @@ public:
         goal.target_pose.pose.position.z = 0.0;
         goal.target_pose.pose.orientation.x = 0.0;
         goal.target_pose.pose.orientation.y = 0.0;
-        goal.target_pose.pose.orientation.z = 0.707106781;
-        goal.target_pose.pose.orientation.w =  0.707106781;
 
         ROS_INFO("Sending Local goal");
         ac.sendGoal(goal);
@@ -433,7 +409,6 @@ public:
   }
 private:
   SubscribeMap *map_manager_;
-  SubscribePath *path_manager_;
   ros::NodeHandle n_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
@@ -459,9 +434,8 @@ int main(int argc, char **argv)
   //Initiate ROS
   ros::init(argc, argv, "goals_publisher");;
   //Create an object of class SubscribeMap that will take care of everything
-  SubscribePath PathManager;
   SubscribeMap MapManager;
-  SubscribeReachable ReachableManager(&MapManager, &PathManager);
+  SubscribeReachable ReachableManager(&MapManager);
 
   ros::spin();
 
