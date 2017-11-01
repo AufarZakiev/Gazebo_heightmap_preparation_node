@@ -1,6 +1,7 @@
 #include "ros/ros.h"
 #include "nav_msgs/OccupancyGrid.h"
 #include "nav_msgs/MapMetaData.h"
+#include "nav_msgs/GetMap.h"
 #include "geometry_msgs/Pose.h"
 
 int convert_to_index(size_t i,size_t column,size_t width){
@@ -12,56 +13,11 @@ int convert_to_gmap_index(size_t i,size_t column,size_t width,size_t gmap_width)
 	return (gmap_width*(i+diff))+column;
 }
 
-class SubscribeMap
-{
-public:
-  SubscribeMap()
-  {
-    //Topic you want to subscribe
-    sub_ = n_.subscribe("/map", 1, &SubscribeMap::callbackMap, this);
-  }
-
-  void callbackMap(const nav_msgs::OccupancyGrid &initial_map)
-  {
-  	ROS_INFO("CallbackMap started");
-
-    // size_t width=initial_map.info.width;
-    // size_t height=initial_map.info.height;
-
-    // ROS_INFO("Initial map width: %zu", width);
-    // ROS_INFO("Initial map height: %zu", height);
-    // ROS_INFO("Initial map size: %zu", height*width);
-
-    double x_origin=initial_map.info.origin.position.x;
-    double y_origin=initial_map.info.origin.position.y;
-    double z_origin=initial_map.info.origin.position.z;
-    float res=initial_map.info.resolution;
-    ROS_INFO("Started grid info proccessing");
-    ROS_INFO("Position: %f %f %f", x_origin,y_origin,z_origin);
-    ROS_INFO("Resolution: %f", res);
-
-    initial_map_.header=initial_map.header;
-    initial_map_.info=initial_map.info;
-    initial_map_.data=initial_map.data;
-    ROS_INFO("CallbackMap finished");	
-  }
-
-  nav_msgs::OccupancyGrid getInitialGmap(){
-  	return initial_map_;
-  }
-
-private:
-  ros::NodeHandle n_; 
-  ros::Subscriber sub_;
-  nav_msgs::OccupancyGrid initial_map_;
-};
-
 class SubscribeGmap
 {
 public:
-  SubscribeGmap(SubscribeMap *map_manager)
+  SubscribeGmap()
   {
-  	map_manager_=map_manager;
     //Topic you want to publish
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/map", 1);
     //Topic you want to subscribe
@@ -70,7 +26,11 @@ public:
 
   void callbackGmap(const nav_msgs::OccupancyGrid &gmap)
   {
-    initial_map_ = map_manager_->getInitialGmap();
+    ros::ServiceClient client = n_.serviceClient<nav_msgs::GetMap>("/static_map");
+    nav_msgs::GetMap srv;
+    client.call(srv);
+    initial_map_ = srv.response.map;
+
     ROS_INFO("Started GMap processing");
 
     gmap_.header=gmap.header;
@@ -108,7 +68,6 @@ public:
   }
 
 private:
-	SubscribeMap *map_manager_;
   ros::NodeHandle n_; 
   ros::Subscriber sub_;
   ros::Publisher pub_;
@@ -120,9 +79,8 @@ int main(int argc, char **argv)
 {
   //Initiate ROS
   ros::init(argc, argv, "maps_merging_node");;
-  //Create an object of class SubscribeMap that will take care of everything
-  SubscribeMap MapManager;
-  SubscribeGmap GmapManager(&MapManager);
+  //Create an object of class SubscribeGMap that will take care of everything
+  SubscribeGmap GmapManager();
 
   ros::spin();
 
