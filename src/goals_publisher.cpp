@@ -330,15 +330,19 @@ public:
         ROS_INFO("Sending Local goal");
         ac.sendGoal(goal);
 
-        ac.waitForResult();
+        ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/reachable_map");
+        nav_msgs::GetMap srv_map;
 
-        // while (ac.getState()!=actionlib::SimpleClientGoalState::SUCCEEDED) { // if robot is still moving to the goal
-        //   //check if the local cell is explored duting movement to it
-        //   if (reachable_map_.data[convert_to_index(maxLocalCell.cell_x, maxLocalCell.cell_y)]!=temp) {
-        //     ac.cancelGoal();
-        //     ROS_INFO("Cell is explored till movement.");
-        //   } 
-        // }
+        while (ac.getState() != actionlib::SimpleClientGoalState::SUCCEEDED) { // if robot is still moving to the goal
+          //check if the local cell is explored duting movement to it
+          client_map.call(srv_map);
+          reachable_map_ = srv_map.response.map;
+          if (reachable_map_.data[convert_to_index(maxLocalCell.cell_x, maxLocalCell.cell_y)] != temp) {
+            ac.cancelGoal();
+            ROS_INFO("Cell is explored till movement.");
+            break;
+          }
+        }
 
         ROS_INFO("You have reached Local goal");
 
