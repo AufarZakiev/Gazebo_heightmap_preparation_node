@@ -7,46 +7,11 @@
 #include "math.h"
 #include <move_base_msgs/MoveBaseAction.h>
 #include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/simple_client_goal_state.h>
 #include "nav_msgs/GetPlan.h"
+#include "nav_msgs/GetMap.h"
 
 typedef actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction> MoveBaseClient;
-
-class SubscribeMap
-{
-public:
-  SubscribeMap()
-  {
-    //Topic you want to subscribe
-    sub_ = n_.subscribe("/map", 1, &SubscribeMap::callbackMap, this);
-  }
-
-  void callbackMap(const nav_msgs::OccupancyGrid &known_map)
-  {
-    ROS_INFO("CallbackMap started");
-
-    double x_origin = known_map.info.origin.position.x;
-    double y_origin = known_map.info.origin.position.y;
-    double z_origin = known_map.info.origin.position.z;
-    float res = known_map.info.resolution;
-    ROS_INFO("Started grid info proccessing");
-    ROS_INFO("Position: %f %f %f", x_origin, y_origin, z_origin);
-    ROS_INFO("Resolution: %f", res);
-
-    known_map_.header = known_map.header;
-    known_map_.info = known_map.info;
-    known_map_.data = known_map.data;
-    ROS_INFO("CallbackMap finished");
-  }
-
-  nav_msgs::OccupancyGrid getKnownGmap() {
-    return known_map_;
-  }
-
-private:
-  ros::NodeHandle n_;
-  ros::Subscriber sub_;
-  nav_msgs::OccupancyGrid known_map_;
-};
 
 class WeightedCell {
 public:
@@ -76,10 +41,9 @@ public:
 class SubscribeReachable
 {
 public:
-  SubscribeReachable(SubscribeMap *map_manager): prev_goal(256, 256, 0, 0)
+  SubscribeReachable(): prev_goal(256, 256, 0, 0)
   {
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/aimed_map", 1);
-    map_manager_ = map_manager;
     //Topic you want to subscribe
     sub_ = n_.subscribe("/reachable_map", 1, &SubscribeReachable::callbackReachable, this);
     temp = 30;
@@ -106,7 +70,10 @@ public:
     ROS_INFO("Reachable map width: %zu", reachable_map_width);
     ROS_INFO("Reachable height: %zu", reachable_map_height);
 
-    known_map_ = map_manager_->getKnownGmap();
+    ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/static_map");
+    nav_msgs::GetMap srv_map;
+    client_map.call(srv_map);
+    known_map_ = srv_map.response.map;
 
     ROS_INFO("Started known map processing");
 
@@ -365,6 +332,14 @@ public:
 
         ac.waitForResult();
 
+        // while (ac.getState()!=actionlib::SimpleClientGoalState::SUCCEEDED) { // if robot is still moving to the goal
+        //   //check if the local cell is explored duting movement to it
+        //   if (reachable_map_.data[convert_to_index(maxLocalCell.cell_x, maxLocalCell.cell_y)]!=temp) {
+        //     ac.cancelGoal();
+        //     ROS_INFO("Cell is explored till movement.");
+        //   } 
+        // }
+
         ROS_INFO("You have reached Local goal");
 
       }
@@ -408,7 +383,6 @@ public:
 
   }
 private:
-  SubscribeMap *map_manager_;
   ros::NodeHandle n_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
@@ -434,9 +408,7 @@ int main(int argc, char **argv)
   //Initiate ROS
   ros::init(argc, argv, "goals_publisher");;
   //Create an object of class SubscribeMap that will take care of everything
-  SubscribeMap MapManager;
-  SubscribeReachable ReachableManager(&MapManager);
-
+  SubscribeReachable ReachableManager;
   ros::spin();
 
   return 0;
