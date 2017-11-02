@@ -22,6 +22,14 @@ public:
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/map", 1);
     //Topic you want to subscribe
     sub_ = n_.subscribe("/gmapped_map", 1, &SubscribeGmap::callbackGmap, this);
+    service_ = n_.advertiseService("uptodate_map",  &SubscribeGmap::uptodate_map, this);
+  }
+
+  bool uptodate_map(nav_msgs::GetMap::Request  &req, nav_msgs::GetMap::Response &res) {
+    //ignore empty request
+    res.map = initial_map_;
+    //ROS_INFO("Reachable map sent.");
+    return true;
   }
 
   void callbackGmap(const nav_msgs::OccupancyGrid &gmap)
@@ -68,6 +76,7 @@ public:
   }
 
 private:
+  ros::ServiceServer service_;
   ros::NodeHandle n_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
