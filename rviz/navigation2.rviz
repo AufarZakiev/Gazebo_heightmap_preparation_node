@@ -6,9 +6,11 @@ Panels:
       Expanded:
         - /TF1/Frames1
         - /TF1/Tree1
+        - /Map1
         - /Global Map1/Planner1
         - /Local Map1/Planner1
         - /Local Map1/Trajectory Cloud1
+        - /Aimed_space1
         - /Pose1
         - /Path1
       Splitter Ratio: 0.463972
@@ -307,7 +309,7 @@ Visualization Manager:
     - Alpha: 0.7
       Class: rviz/Map
       Color Scheme: map
-      Draw Behind: false
+      Draw Behind: true
       Enabled: true
       Name: Map
       Topic: /map
@@ -489,14 +491,14 @@ Visualization Manager:
       Class: rviz/Map
       Color Scheme: costmap
       Draw Behind: false
-      Enabled: true
+      Enabled: false
       Name: unknown_reachable_space
       Topic: /reachable_map
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 0.7
       Class: rviz/Map
-      Color Scheme: map
+      Color Scheme: raw
       Draw Behind: false
       Enabled: true
       Name: Aimed_space
@@ -563,7 +565,7 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Angle: -6.46002
+      Angle: -6.28502
       Class: rviz/TopDownOrtho
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
@@ -572,11 +574,11 @@ Visualization Manager:
         Value: false
       Name: Current View
       Near Clip Distance: 0.01
-      Scale: 319.356
+      Scale: 114.541
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 0.666505
-      Y: 2.51887
+      X: 1.04819
+      Y: 0.233586
     Saved: ~
 Window Geometry:
   Displays:
