@@ -181,7 +181,6 @@ public:
     size_t robot_radius = 4;
     if (globalpath.poses.size() != 0) {
       for (size_t k = prev_pose; k < globalpath.poses.size(); k++) {
-        bool found = false;
         geometry_msgs::Pose pose = globalpath.poses[k].pose;
         //ROS_INFO("Path's position x %f", pose.position.x);
         //ROS_INFO("Path's position y %f", pose.position.y);
@@ -203,63 +202,60 @@ public:
         //ROS_INFO("Path's x2 %zu", x2);
         //ROS_INFO("Path's y1 %zu", y1);
         //ROS_INFO("Path's y2 %zu", y2);
+        bool found = false;
         for (size_t i = y1; i < y2; ++i) {
           for (size_t j = x1; j < x2; ++j) {
-            bool blocked = false;
             max_map_.data = empty;
-            //pub_.publish(max_map_);
             if (reachable_map_.data[convert_to_index(i, j)] == temp) {
-              // ROS_INFO("I, J: %zu,%zu", i, j);
-              Line(i, j, y, x);
+              if (!Line(i, j, y, x, goal)) {
+                maxLocalCell = WeightedCell(i, j, 0, 0);
+                maxLocalGoal = WeightedCell(y, x, 0, 0);
+                bool found = true;
+                ROS_INFO("LocalTopCell x %zu", maxLocalCell.cell_x);
+                ROS_INFO("LocalTopCell y %zu", maxLocalCell.cell_y);
+                while (!ac.waitForServer(ros::Duration(5.0))) {
+                  ROS_INFO("Waiting for the move_base action server to come up");
+                }
+
+                goal.target_pose.header.frame_id = "map";
+                goal.target_pose.header.stamp = ros::Time::now();
+
+                goal.target_pose.pose.position.x = (known_map_.info.resolution * maxLocalGoal.cell_x) - 30.0;
+                goal.target_pose.pose.position.y = (known_map_.info.resolution * maxLocalGoal.cell_y) - 30.0;
+                goal.target_pose.pose.position.z = 0.0;
+                goal.target_pose.pose.orientation.x = 0.0;
+                goal.target_pose.pose.orientation.y = 0.0;
+
+                ROS_INFO("Sending Local goal");
+                ac.sendGoal(goal);
+
+                ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/reachable_map");
+                nav_msgs::GetMap srv_map;
+
+                while (ac.getState() != actionlib::SimpleClientGoalState::SUCCEEDED) { // if robot is still moving to the goal
+                  //check if the local cell is explored during movement to it
+                  client_map.call(srv_map);
+                  reachable_map_ = srv_map.response.map;
+                  if (reachable_map_.data[convert_to_index(maxLocalCell.cell_y, maxLocalCell.cell_x)] != temp) {
+                    ac.cancelGoal();
+                    ROS_INFO("Cell is explored till movement.");
+                    break;
+                  }
+                }
+                ROS_INFO("You have reached Local goal");
+              }
             }
-          }
-          if (found) {
-            break;
-            prev_pose = k;
           }
         }
         //ROS_INFO("LocalTop is: %zu", maxLocalGoal.weight);
         //ROS_INFO("LocalTopGoal x %zu", maxLocalGoal\\.cell_x);
         //ROS_INFO("LocalTopGoal y %zu", maxLocalGoal.cell_y);
-        ROS_INFO("LocalTopCell x %zu", maxLocalCell.cell_x);
-        ROS_INFO("LocalTopCell y %zu", maxLocalCell.cell_y);
         //max_map_.data[convert_to_index(maxLocalCell.cell_y, maxLocalCell.cell_x)] = 70;
         //pub_.publish(max_map_);
         //ROS_INFO("LocalTop_x is: %f", (known_map_.info.resolution * maxLocalGoal.cell_x) - 30.0);
         //ROS_INFO("LocalTop_y is: %f", (known_map_.info.resolution * maxLocalGoal.cell_y) - 30.0);
 
-        while (!ac.waitForServer(ros::Duration(5.0))) {
-          ROS_INFO("Waiting for the move_base action server to come up");
-        }
 
-        goal.target_pose.header.frame_id = "map";
-        goal.target_pose.header.stamp = ros::Time::now();
-
-        goal.target_pose.pose.position.x = (known_map_.info.resolution * maxLocalGoal.cell_x) - 30.0;
-        goal.target_pose.pose.position.y = (known_map_.info.resolution * maxLocalGoal.cell_y) - 30.0;
-        goal.target_pose.pose.position.z = 0.0;
-        goal.target_pose.pose.orientation.x = 0.0;
-        goal.target_pose.pose.orientation.y = 0.0;
-
-        ROS_INFO("Sending Local goal");
-        ac.sendGoal(goal);
-
-        //ac.waitForResult();
-        ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/reachable_map");
-        nav_msgs::GetMap srv_map;
-
-        while (ac.getState() != actionlib::SimpleClientGoalState::SUCCEEDED) { // if robot is still moving to the goal
-          //check if the local cell is explored during movement to it
-          client_map.call(srv_map);
-          reachable_map_ = srv_map.response.map;
-          if (reachable_map_.data[convert_to_index(maxLocalCell.cell_y, maxLocalCell.cell_x)] != temp) {
-            ac.cancelGoal();
-            ROS_INFO("Cell is explored till movement.");
-            break;
-          }
-          //ROS_INFO("%s",ac.getState().toString().c_str());
-        }
-        ROS_INFO("You have reached Local goal");
       }
     }
   }
@@ -286,11 +282,27 @@ private:
     return true;
   }
 
-
-  void Line(size_t x1, size_t y1, size_t x2, size_t y2)
+  bool Line(size_t x1, size_t y1, size_t x2, size_t y2, move_base_msgs::MoveBaseGoal &goal)
   {
     // Bresenham's line algorithm
     const bool steep = (fabs((int)y2 - (int)y1) > fabs((int)x2 - (int)x1));
+    bool blocked = false;
+    if (y1 > y2) {
+      goal.target_pose.pose.orientation.w = 0.92387953251;
+      if (x1 > x2) {
+        goal.target_pose.pose.orientation.z = 0.38268343236;
+      } else {
+        goal.target_pose.pose.orientation.z = -0.38268343236;
+      }
+    } else {
+      goal.target_pose.pose.orientation.w = 0.38268343236;
+      if (x1 > x2) {
+        goal.target_pose.pose.orientation.z = 0.92387953251;
+      } else {
+        goal.target_pose.pose.orientation.z = -0.92387953251;
+      }
+    }
+
     if (steep)
     {
       std::swap(x1, y1);
@@ -317,10 +329,16 @@ private:
       if (steep)
       {
         max_map_.data[convert_to_index(y, x)] = 70;
+        if (known_map_.data[convert_to_index(y, x)] == 100) {
+          blocked = true;
+        }
       }
       else
       {
         max_map_.data[convert_to_index(x, y)] = 70;
+        if (known_map_.data[convert_to_index(x, y)] == 100) {
+          blocked = true;
+        }
       }
 
       error -= dy;
@@ -331,6 +349,7 @@ private:
       }
     }
     pub_.publish(max_map_);
+    return blocked;
   }
 };
 
