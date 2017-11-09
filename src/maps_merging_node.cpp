@@ -4,13 +4,13 @@
 #include "nav_msgs/GetMap.h"
 #include "geometry_msgs/Pose.h"
 
-int convert_to_index(size_t i,size_t column,size_t width){
-	return (width*i)+column;
+int convert_to_index(size_t i, size_t column, size_t width) {
+  return (width * i) + column;
 }
 
-int convert_to_gmap_index(size_t i,size_t column,size_t width,size_t gmap_width){
-	int diff=gmap_width-width;
-	return (gmap_width*(i+diff))+column;
+int convert_to_gmap_index(size_t i, size_t column, size_t width, size_t gmap_width) {
+  int diff = gmap_width - width;
+  return (gmap_width * (i + diff)) + column;
 }
 
 class SubscribeGmap
@@ -22,6 +22,14 @@ public:
     pub_ = n_.advertise<nav_msgs::OccupancyGrid>("/map", 1);
     //Topic you want to subscribe
     sub_ = n_.subscribe("/gmapped_map", 1, &SubscribeGmap::callbackGmap, this);
+    service_ = n_.advertiseService("uptodate_map",  &SubscribeGmap::uptodate_map, this);
+  }
+
+  bool uptodate_map(nav_msgs::GetMap::Request  &req, nav_msgs::GetMap::Response &res) {
+    //ignore empty request
+    res.map = initial_map_;
+    //ROS_INFO("Reachable map sent.");
+    return true;
   }
 
   void callbackGmap(const nav_msgs::OccupancyGrid &gmap)
@@ -33,34 +41,34 @@ public:
 
     ROS_INFO("Started GMap processing");
 
-    gmap_.header=gmap.header;
-    gmap_.info=gmap.info;
-    gmap_.data=gmap.data;
+    gmap_.header = gmap.header;
+    gmap_.info = gmap.info;
+    gmap_.data = gmap.data;
 
-	  size_t gmap_width=gmap.info.width;
-    size_t gmap_height=gmap.info.height;
+    size_t gmap_width = gmap.info.width;
+    size_t gmap_height = gmap.info.height;
 
     ROS_INFO("Gmap width: %zu", gmap_width);
     ROS_INFO("Gmap height: %zu", gmap_height);
-    ROS_INFO("Gmap size: %zu", gmap_height*gmap_width);
+    ROS_INFO("Gmap size: %zu", gmap_height * gmap_width);
 
-	  ROS_INFO("Started initial map processing");
+    ROS_INFO("Started initial map processing");
 
-    size_t initial_map_width=initial_map_.info.width;
-    size_t initial_map_height=initial_map_.info.height;
+    size_t initial_map_width = initial_map_.info.width;
+    size_t initial_map_height = initial_map_.info.height;
 
     ROS_INFO("Initial map width: %zu", initial_map_width);
     ROS_INFO("Initlal map height: %zu", initial_map_height);
-    ROS_INFO("Initial map size: %zu", initial_map_height*initial_map_width);
+    ROS_INFO("Initial map size: %zu", initial_map_height * initial_map_width);
 
-    for(size_t i=0;i<initial_map_width;++i){
-    	for(size_t j=0;j<initial_map_height;++j){
-    		size_t map_index=convert_to_index(i,j,initial_map_width);
-    		size_t gmap_index=convert_to_gmap_index(i,j,initial_map_width,gmap_width);
-    		if(initial_map_.data[map_index]==-1 && gmap_.data[gmap_index]!=-1){
-    			initial_map_.data[map_index]=gmap_.data[gmap_index];
-    		} 
-    	}
+    for (size_t i = 0; i < initial_map_width; ++i) {
+      for (size_t j = 0; j < initial_map_height; ++j) {
+        size_t map_index = convert_to_index(i, j, initial_map_width);
+        size_t gmap_index = convert_to_gmap_index(i, j, initial_map_width, gmap_width);
+        if (gmap_.data[gmap_index] != -1 && initial_map_.data[map_index] != gmap_.data[gmap_index]) {
+          initial_map_.data[map_index] = gmap_.data[gmap_index];
+        }
+      }
     }
 
     pub_.publish(initial_map_);
@@ -68,7 +76,8 @@ public:
   }
 
 private:
-  ros::NodeHandle n_; 
+  ros::ServiceServer service_;
+  ros::NodeHandle n_;
   ros::Subscriber sub_;
   ros::Publisher pub_;
   nav_msgs::OccupancyGrid initial_map_;
