@@ -65,7 +65,7 @@ public:
       for (size_t j = 0; j < initial_map_height; ++j) {
         size_t map_index = convert_to_index(i, j, initial_map_width);
         size_t gmap_index = convert_to_gmap_index(i, j, initial_map_width, gmap_width);
-        if (initial_map_.data[map_index] == -1 && gmap_.data[gmap_index] != -1) {
+        if (gmap_.data[gmap_index] != -1 && initial_map_.data[map_index] != gmap_.data[gmap_index]) {
           initial_map_.data[map_index] = gmap_.data[gmap_index];
         }
       }

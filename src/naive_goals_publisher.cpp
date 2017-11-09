@@ -136,7 +136,8 @@ public:
           for(int xi=-40;xi<40;++xi){
             for(int yi=-40;yi<40;++yi){
               if((xi*xi+yi*yi)<1600 && 
-                is_point_exist(i+xi,j+yi)){
+                is_point_exist(i+xi,j+yi) && 
+                is_point_frontier(i+xi,j+yi)){
                 if(reachable_map_.data[convert_to_index(i+xi,j+yi)]==temp){
                   reachable_count++;
                   aimed_map_.data[convert_to_index(i+xi,j+yi)]=70;

@@ -71,7 +71,7 @@ public:
     ROS_INFO("Reachable map width: %zu", reachable_map_width);
     ROS_INFO("Reachable height: %zu", reachable_map_height);
 
-    ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/static_map");
+    ros::ServiceClient client_map = n_.serviceClient<nav_msgs::GetMap>("/uptodate_map");
     nav_msgs::GetMap srv_map;
     client_map.call(srv_map);
     known_map_ = srv_map.response.map;
@@ -152,7 +152,6 @@ public:
       //ROS_INFO("Sending Global goal");
       //ac.sendGoal(goal);
       ros::ServiceClient client = n_.serviceClient<nav_msgs::GetPlan>("/move_base/make_plan");
-      nav_msgs::GetPlan srv;
       srv.request.start = start;
       srv.request.goal = goal.target_pose;
       srv.request.tolerance = 0.1;
@@ -209,7 +208,7 @@ public:
             if (reachable_map_.data[convert_to_index(i, j)] == temp) {
               if (!Line(i, j, y, x, goal)) {
                 maxLocalCell = WeightedCell(i, j, 0, 0);
-                maxLocalGoal = WeightedCell(y, x, 0, 0);
+                //maxLocalGoal = WeightedCell(y, x, 0, 0);
                 bool found = true;
                 ROS_INFO("LocalTopCell x %zu", maxLocalCell.cell_x);
                 ROS_INFO("LocalTopCell y %zu", maxLocalCell.cell_y);
@@ -220,8 +219,8 @@ public:
                 goal.target_pose.header.frame_id = "map";
                 goal.target_pose.header.stamp = ros::Time::now();
 
-                goal.target_pose.pose.position.x = (known_map_.info.resolution * maxLocalGoal.cell_x) - 30.0;
-                goal.target_pose.pose.position.y = (known_map_.info.resolution * maxLocalGoal.cell_y) - 30.0;
+                //goal.target_pose.pose.position.x = (known_map_.info.resolution * maxLocalGoal.cell_x) - 30.0;
+                //goal.target_pose.pose.position.y = (known_map_.info.resolution * maxLocalGoal.cell_y) - 30.0;
                 goal.target_pose.pose.position.z = 0.0;
                 goal.target_pose.pose.orientation.x = 0.0;
                 goal.target_pose.pose.orientation.y = 0.0;
@@ -239,6 +238,11 @@ public:
                   if (reachable_map_.data[convert_to_index(maxLocalCell.cell_y, maxLocalCell.cell_x)] != temp) {
                     ac.cancelGoal();
                     ROS_INFO("Cell is explored till movement.");
+                    break;
+                  }
+                  if(ac.getState() == actionlib::SimpleClientGoalState::ABORTED){
+                    ac.cancelGoal();
+                    ROS_INFO("Cell is unreachable.");
                     break;
                   }
                 }
@@ -271,6 +275,8 @@ private:
   nav_msgs::OccupancyGrid aimed_map_;
   nav_msgs::OccupancyGrid max_map_;
   WeightedCell prev_goal;
+  ros::ServiceClient client;
+  nav_msgs::GetPlan srv;
   int temp;
 
   size_t convert_to_index(size_t row, size_t column) {
@@ -287,6 +293,7 @@ private:
     // Bresenham's line algorithm
     const bool steep = (fabs((int)y2 - (int)y1) > fabs((int)x2 - (int)x1));
     bool blocked = false;
+    bool found = false;
     if (y1 > y2) {
       goal.target_pose.pose.orientation.w = 0.92387953251;
       if (x1 > x2) {
@@ -331,6 +338,15 @@ private:
         max_map_.data[convert_to_index(y, x)] = 70;
         if (known_map_.data[convert_to_index(y, x)] == 100) {
           blocked = true;
+        } else {
+          goal.target_pose.pose.position.x = (known_map_.info.resolution * x) - 30.0;
+          goal.target_pose.pose.position.y = (known_map_.info.resolution * y) - 30.0;
+          srv.request.goal = goal.target_pose;
+          if (!found && client.call(srv)) {
+            if (srv.response.plan.poses.size() > 0) {
+              found = true;
+            }
+          }
         }
       }
       else
@@ -338,6 +354,15 @@ private:
         max_map_.data[convert_to_index(x, y)] = 70;
         if (known_map_.data[convert_to_index(x, y)] == 100) {
           blocked = true;
+        } else {
+          goal.target_pose.pose.position.x = (known_map_.info.resolution * y) - 30.0;
+          goal.target_pose.pose.position.y = (known_map_.info.resolution * x) - 30.0;
+          srv.request.goal = goal.target_pose;
+          if (!found && client.call(srv)) {
+            if (srv.response.plan.poses.size() > 0) {
+              found = true;
+            }
+          }
         }
       }
 

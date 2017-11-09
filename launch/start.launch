@@ -1,0 +1,32 @@
+<launch>
+  <arg name="use_filtering" default="true"/>
+  <arg name="color_inverse" default="false"/>
+
+  <!-- pgm preparaion params -->
+  <arg name="map_filepath"  default="/home/aufarz/Downloads/index2.jpeg"/>
+  <arg name="saving_filepath"  default="/home/aufarz/Downloads"/>
+  <arg name="offset_x" default="200"/>
+  <arg name="offset_y" default="600"/>
+  <arg name="cropped_width" default="400"/>
+  <arg name="cropped_height" default="400"/>
+  <arg name="bot_trshd" default="30"/>
+  <arg name="top_trshd" default="30"/>
+
+  <!-- turtlebot params -->
+	<arg name="tf_prefix" default="$(optenv ROS_NAMESPACE)"/>
+  <arg name="base"      value="$(optenv TURTLEBOT_BASE kobuki)"/> <!-- create, roomba -->
+  <arg name="battery"   value="$(optenv TURTLEBOT_BATTERY /proc/acpi/battery/BAT0)"/>  <!-- /proc/acpi/battery/BAT0 --> 
+  <arg name="gui" default="true"/>
+  <arg name="stacks"    value="$(optenv TURTLEBOT_STACKS hexagons)"/>  <!-- circles, hexagons --> 
+  <arg name="3d_sensor" value="$(optenv TURTLEBOT_3D_SENSOR kinect)"/>  <!-- kinect, asus_xtion_pro --> 
+  <arg name="use_ground_truth_for_tf" default="true"/>
+  <arg name="use_ground_truth_for_control" default="true"/>
+  <arg name="use_pose_estimation" if="$(arg use_ground_truth_for_control)" default="false"/>
+  <arg name="use_pose_estimation" unless="$(arg use_ground_truth_for_control)" default="true"/>
+
+  <node pkg="gazebo_heightmap_preparation" type="map_preparing_test_node" name="map_preparing_test_node" args="-f $(arg map_filepath) -s $(arg saving_filepath) -offset $(arg offset_x) $(arg offset_y) -w $(arg cropped_width) -h $(arg cropped_height) -use_filtering $(arg use_filtering) -color_inverse $(arg color_inverse) -bot_trshd $(arg bot_trshd) -top_trshd $(arg top_trshd)" output="screen"/>
+
+  <node pkg="gazebo_heightmap_preparation" type="world_creator" name="world_creator" args="-f $(arg saving_filepath)/new_map.png"/>s
+
+  
+</launch>
