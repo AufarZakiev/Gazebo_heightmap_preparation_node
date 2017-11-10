@@ -127,13 +127,13 @@ include_directories(
 
 ## Declare a C++ executable
 # add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)
-add_executable(maps_merging_node src/maps_merging_node.cpp)
+# add_executable(maps_merging_node src/maps_merging_node.cpp)
 add_executable(world_creator src/world_creator.cpp)
 add_executable(map_preparing_test_node src/map_preparing_node_test.cpp)
-add_executable(reachable_unknown_publisher src/reachable_unknown_publisher.cpp)
-add_executable(goals_publisher src/goals_publisher.cpp)
-add_executable(naive_goals_publisher src/naive_goals_publisher.cpp)
-add_executable(naive_reachable_unknown_publisher src/naive_reachable_unknown_publisher.cpp)
+# add_executable(reachable_unknown_publisher src/reachable_unknown_publisher.cpp)
+# add_executable(goals_publisher src/goals_publisher.cpp)
+# add_executable(naive_goals_publisher src/naive_goals_publisher.cpp)
+# add_executable(naive_reachable_unknown_publisher src/naive_reachable_unknown_publisher.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
@@ -152,28 +152,6 @@ add_executable(naive_reachable_unknown_publisher src/naive_reachable_unknown_pub
 target_link_libraries(world_creator
    ${catkin_LIBRARIES}
  )
-
-
-  target_link_libraries(maps_merging_node
-   ${catkin_LIBRARIES}
- )
-
- target_link_libraries(reachable_unknown_publisher
-   ${catkin_LIBRARIES}
- )
-
-target_link_libraries(goals_publisher
-   ${catkin_LIBRARIES}
- )
-
-target_link_libraries(naive_reachable_unknown_publisher
-   ${catkin_LIBRARIES}
- )
-
-target_link_libraries(naive_goals_publisher
-   ${catkin_LIBRARIES}
- )
-
 
 #############
 ## Install ##
