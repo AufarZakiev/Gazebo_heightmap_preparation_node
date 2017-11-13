@@ -55,8 +55,14 @@ $ catkin_make
 
 ## Examples
 
+If you are new to this tool, try preparing sample image (located in [sample_images folder](https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node/tree/master/launch/sample_images)) and generating world based on this image by typing
+```sh
+roslaunch gazebo_heightmap_preparation prepare.launch
 ```
-$ rosrun gazebo_heightmap_preparation gazebo_heightmap_preparation_node -f <path>/map.pgm -offset 1900 1900 -h 257
-
-$ rosrun gazebo_heightmap_preparation gazebo_heightmap_preparation_node -f <path>/map.pgm -s <saving_path> -w 400 -h 200
+This filters sample_map.pgm with default parameters and saves prepared image to [result folder](https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node/tree/master/launch/sample_images/result). Also there is generated_world.world file with heightmap model based on prepared image. To see it in Gazebo do following:
+```sh 
+cd <result folder>
+gazebo generated_world.world 
 ```
+Voila!
+![Gazebo_1](https://user-images.githubusercontent.com/5558521/32720122-a1b1bfb8-c873-11e7-8f25-6d6216ffa5e8.png)
