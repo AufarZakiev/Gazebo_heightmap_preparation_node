@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+<world name="default">
+<!-- A global light source --><include>
+<uri>model://sun</uri>
+</include>
+<physics name="ode_200iters" type="ode" default="true">
+<real_time_update_rate>250</real_time_update_rate>
+</physics>
+<model name="heightmap">
+<static>true</static>
+<link name="link">
+<collision name="collision1">
+<geometry>
+<heightmap>
+<uri>
+file:///home/aufarz/catkin_ws/src/gazebo_heightmap_preparation/launch/sample_images/result/prepared_map.png</uri>
+<size>60 60 2</size>
+<pos>0 0 0</pos>
+</heightmap>
+</geometry>
+</collision>
+<visual name="visual_abcedf1">
+<geometry>
+<heightmap>
+<use_terrain_paging>false</use_terrain_paging>
+<texture>
+<diffuse>file://media/materials/textures/fungus_diffusespecular.png</diffuse>
+<normal>file://media/materials/textures/flat_normal.png</normal>
+<size>0.5</size>
+</texture>
+<texture>
+<diffuse>file://media/materials/textures/dirt_diffusespecular.png</diffuse>
+<normal>file://media/materials/textures/grass_normal.jpg</normal>
+<size>5</size>
+</texture>
+<texture>
+<diffuse>file://media/materials/textures/white.bmp</diffuse>
+<normal>file://media/materials/textures/white.bmp</normal>
+<size>1</size>
+</texture>
+<blend>
+<min_height>0.1</min_height>
+<fade_dist>0</fade_dist>
+</blend>
+<blend>
+<min_height>0.7</min_height>
+<fade_dist>0</fade_dist>
+</blend>
+<uri>
+file:///home/aufarz/catkin_ws/src/gazebo_heightmap_preparation/launch/sample_images/result/prepared_map.png</uri>
+<size>60 60 2</size>
+<pos>0 0 0</pos>
+</heightmap>
+</geometry>
+</visual>
+</link>
+</model>
+</world> 
+ </sdf>
