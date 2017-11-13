@@ -4,9 +4,6 @@
 <!-- A global light source --><include>
 <uri>model://sun</uri>
 </include>
-<physics name="ode_200iters" type="ode" default="true">
-<real_time_update_rate>250</real_time_update_rate>
-</physics>
 <model name="heightmap">
 <static>true</static>
 <link name="link">

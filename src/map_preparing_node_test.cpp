@@ -4,13 +4,7 @@
 
 using namespace Magick;
 
-#define USAGE "Usage: \n" \
-"-f <map_path> \n"\
-"-offset <x_offset, px> <y_offset, px> \n"\
-"-w <min_resulting_width,px> \n"\
-"-h <min_resulting_height,px> \n"\
-"-use_median_filtering <true/false> \n"\
-"-color_inverse <true/false> \n"\
+#define USAGE "See docs for usage https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node"\
 
 
 bool is_point_exist(size_t row, size_t column, size_t width, size_t height) {
@@ -30,7 +24,7 @@ int main(int argc, char **argv)
 	std::string save_path = "";
 	size_t x_offset = 0;
 	size_t y_offset = 0;
-
+	puts(USAGE);
 	if (!strcmp(argv[1], "-f"))
 	{
 		if (2 < argc)
