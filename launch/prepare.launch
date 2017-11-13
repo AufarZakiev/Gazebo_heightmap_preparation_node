@@ -3,7 +3,7 @@
   <arg default="true" name="use_median_filtering"/>
   <arg default="false" name="use_modified_median_filtering"/>
   <!-- Color inverse enabling  -->
-  <arg default="false" name="color_inverse"/>
+  <arg default="true" name="color_inverse"/>
   <!-- Initial map path -->
   <arg default="$(find gazebo_heightmap_preparation)/launch/sample_images/sample_map.pgm" name="map_filepath"/>
   <!-- Prepared map and generated world saving path -->
