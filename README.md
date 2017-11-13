@@ -6,9 +6,9 @@ This is ROS node providing automatic images edition before importing it in Gazeb
 
 ## Features
 
-  - User-controlled image cropping
-  - Automatic grayscaling
-  - Automatic Gazebo-defined resizing
+  -User-controlled image cropping
+  -Automatic grayscaling
+  -Automatic Gazebo-defined resizing
 
 ## References
 
