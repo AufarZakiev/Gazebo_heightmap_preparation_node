@@ -42,10 +42,16 @@ $ catkin_make
 | Parameter name | Feature |
 | ------ | ------ |
 | -f <path_string> | Path to source image (required) |
-| -s <path_string> | Path to processed image (optional) |
-| -offset <x> <y> | Offset from top-left corner to crop (optional) |
-| -w <width> | Minimum desired width (optional) |
-| -h <height> | Minimum desired height (optional) |
+| -s <path_string> | Prepared map and generated world saving folder path (optional) |
+| -offset <x> <y> | Offset to crop from left-top corner of image (optional) |
+| -w <width> | Minimum desired width (optional). Desired width is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size. |
+| -h <height> | Minimum desired height (optional). Desired height is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size. |
+| -use_median_filtering <true/false> | Median filter enabling (optional) |
+| -use_modified_median_filtering <true/false> | Modified median filter enabling. Works only with median filter enabled (optional) |
+| -color_inverse <true/false> | Image color inverse (optional) |
+| -bot_trshd <bot_trshd> | Thresholds used to smooth out heightmap. Every pixel below "bot_trshd" turns to 0 value (optional) |
+| -top_trshd <top_trshd> | Thresholds used to smooth out heightmap. Every pixel above "top_trshd" turns to 255 value (optional) |
+| -iter <iterations> | Filtering iterations count (optional) |
 
 ## Examples
 
