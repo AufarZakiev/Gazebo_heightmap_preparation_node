@@ -14,9 +14,6 @@ void createWorld(std::string world_path, std::string map_path)
        "<include>\n"
        "<uri>model://sun</uri>\n"
        "</include>\n";
-  buff << "<physics name=\"ode_200iters\" type=\"ode\" default=\"true\">\n"
-       "<real_time_update_rate>250</real_time_update_rate>\n"
-       "</physics>\n";
   ROS_INFO("Writing started"); // выводим сообщение
   ROS_INFO("Started creating Gazebo world file");
 
