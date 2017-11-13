@@ -59,7 +59,7 @@ If you are new to this tool, try preparing sample image (located in [sample_imag
 ```sh
 roslaunch gazebo_heightmap_preparation prepare.launch
 ```
-This filters sample_map.pgm with default parameters and saves prepared image to [result folder](https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node/tree/master/launch/sample_images/result). Also there is generated_world.world file with heightmap model based on prepared image. To see it in Gazebo do following:
+This filters sample_map.pgm with default parameters and saves prepared image to [result folder](https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node/tree/master/launch/sample_images/result). Also there is `generated_world.world` file with heightmap model based on prepared image. To see it in Gazebo do following:
 ```sh 
 cd <result folder>
 gazebo generated_world.world 
