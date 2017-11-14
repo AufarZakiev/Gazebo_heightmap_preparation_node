@@ -20,6 +20,6 @@
   <!-- Filtering iterations count. The more filter iterations, the less noise level. -->
   <arg default="1" name="iter"/>
   <!-- Filtering iterations count. The more filter iterations, the less noise level. -->
-  <node args="-f $(arg map_filepath) -s $(arg saving_filepath) -offset $(arg offset_x) $(arg offset_y) -w $(arg cropped_width) -h $(arg cropped_height) -use_median_filtering $(arg use_median_filtering) -use_modified_median_filtering $(arg use_modified_median_filtering) -color_inverse $(arg color_inverse) -bot_trshd $(arg bot_trshd) -top_trshd $(arg top_trshd) -iter $(arg iter)" name="map_preparing_test_node" output="screen" pkg="gazebo_heightmap_preparation" type="map_preparing_test_node" required="true"/>
+  <node args="--f $(arg map_filepath) --s $(arg saving_filepath) --offset $(arg offset_x) $(arg offset_y) --w $(arg cropped_width) --h $(arg cropped_height) --use_median_filtering --bot_trshd $(arg bot_trshd) --top_trshd $(arg top_trshd) --iter $(arg iter)" name="map_preparing_test_node" output="screen" pkg="gazebo_heightmap_preparation" type="map_preparing_test_node" required="true"/>
   <node args="-f $(arg saving_filepath)/prepared_map.png" name="world_creator" pkg="gazebo_heightmap_preparation" type="world_creator"/>
 </launch>
