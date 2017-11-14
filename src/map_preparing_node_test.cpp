@@ -16,6 +16,133 @@ int convert_to_index(size_t i, size_t column, size_t width) {
 	return (width * i) + column;
 }
 
+Color median_color_value(size_t i, size_t j, Image *input_image) {
+	size_t w = input_image->columns();
+	size_t h = input_image->rows();
+	PixelPacket *pixels = input_image->getPixels(0, 0, w, h);
+	std::map<Color, int> neighbours;
+	neighbours.clear();
+	neighbours[pixels[convert_to_index(i, j, w)]]++;
+	if (is_point_exist(i - 1, j - 1, w, h)) {
+		neighbours[pixels[convert_to_index(i - 1, j - 1, w)]]++;
+	}
+	if (is_point_exist(i - 1, j, w, h)) {
+		neighbours[pixels[convert_to_index(i - 1, j, w)]]++;
+	}
+	if (is_point_exist(i - 1, j + 1, w, h)) {
+		neighbours[pixels[convert_to_index(i - 1, j + 1, w)]]++;
+	}
+	if (is_point_exist(i, j - 1, w, h)) {
+		neighbours[pixels[convert_to_index(i, j - 1, w)]]++;
+	}
+	if (is_point_exist(i, j + 1, w, h)) {
+		neighbours[pixels[convert_to_index(i, j + 1, w)]]++;
+	}
+	if (is_point_exist(i + 1, j - 1, w, h)) {
+		neighbours[pixels[convert_to_index(i + 1, j - 1, w)]]++;
+	}
+	if (is_point_exist(i + 1, j, w, h)) {
+		neighbours[pixels[convert_to_index(i + 1, j, w)]]++;
+	}
+	if (is_point_exist(i + 1, j + 1, w, h)) {
+		neighbours[pixels[convert_to_index(i + 1, j + 1, w)]]++;
+	}
+	Color max_value = neighbours.find(pixels[convert_to_index(i, j, w)])->first;
+	int max_value_count = 0;
+	for (std::map<Color, int>::iterator it = neighbours.begin(); it != neighbours.end(); ++it) {
+		if (it->second > max_value_count) {
+			max_value_count = it->second;
+			max_value = it->first;
+		}
+	}
+	return max_value;
+}
+
+
+void modify_median_color_value(size_t i, size_t j, Image *smoothed_image, Image *filtered_image) {
+	size_t w = filtered_image->columns();
+	size_t h = filtered_image->rows();
+	PixelPacket *smoothed_pixels = smoothed_image->getPixels(0, 0, w, h);
+	PixelPacket *filtered_pixels = filtered_image->getPixels(0, 0, w, h);
+	if (is_point_exist(i - 1, j, w, h) && is_point_exist(i + 1, j, w, h)) {
+		if (smoothed_pixels[convert_to_index(i - 1, j, w)] == smoothed_pixels[convert_to_index(i, j, w)] &&
+		        smoothed_pixels[convert_to_index(i, j, w)] == smoothed_pixels[convert_to_index(i + 1, j, w)]) {
+			filtered_pixels[convert_to_index(i - 1, j, w)] = smoothed_pixels[convert_to_index(i - 1, j, w)];
+			filtered_pixels[convert_to_index(i, j, w)] = smoothed_pixels[convert_to_index(i, j, w)];
+			filtered_pixels[convert_to_index(i + 1, j, w)] = smoothed_pixels[convert_to_index(i + 1, j, w)];
+		}
+	}
+	if (is_point_exist(i, j - 1, w, h) && is_point_exist(i, j + 1, w, h)) {
+		if (smoothed_pixels[convert_to_index(i, j - 1, w)] == smoothed_pixels[convert_to_index(i, j, w)] &&
+		        smoothed_pixels[convert_to_index(i, j, w)] == smoothed_pixels[convert_to_index(i, j + 1, w)]) {
+			filtered_pixels[convert_to_index(i, j - 1, w)] = smoothed_pixels[convert_to_index(i, j - 1, w)];
+			filtered_pixels[convert_to_index(i, j, w)] = smoothed_pixels[convert_to_index(i, j, w)];
+			filtered_pixels[convert_to_index(i, j + 1, w)] = smoothed_pixels[convert_to_index(i, j + 1, w)];
+		}
+	}
+}
+
+Image smooth_image(Image *input_image, size_t bot_trshd, size_t top_trshd) {
+	size_t w = input_image->columns();
+	size_t h = input_image->rows();
+	Image smoothed_image(*input_image);
+	unsigned char *gray_pixels = new unsigned char[w * h];
+	smoothed_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
+	ROS_INFO("top_trshd: %zu", top_trshd);
+	ROS_INFO("bot_trshd: %zu", bot_trshd);
+	for (size_t i = 0; i < h; i++) {
+		for (size_t j = 0; j < w; j++) {
+			if (gray_pixels[convert_to_index(i, j, w)] < bot_trshd)
+			{
+				gray_pixels[convert_to_index(i, j, w)] = 0;
+			} else if (gray_pixels[convert_to_index(i, j, w)] >= top_trshd) {
+				gray_pixels[convert_to_index(i, j, w)] = 255;
+			}
+		}
+	}
+	smoothed_image.read(w, h, "I", CharPixel, gray_pixels);
+	return smoothed_image;
+}
+
+Image median_filter_image(Image *input_image, size_t filter_iterations) {
+	size_t w = input_image->columns();
+	size_t h = input_image->rows();
+	PixelPacket *pixels = input_image->getPixels(0, 0, w, h);
+	Image filtered_image(*input_image);
+	PixelPacket *filtered_pixels = filtered_image.getPixels(0, 0, w, h);
+	for (size_t count = 0; count < filter_iterations; count++) {
+		for (size_t i = 0; i < h; i++) {
+			for (size_t j = 0; j < w; j++) {
+				filtered_pixels[convert_to_index(i, j, w)] = median_color_value(i, j, input_image);
+			}
+		}
+		pixels = filtered_pixels;
+	}
+	return filtered_image;
+}
+
+Image modified_median_filter_image(Image *input_image, size_t filter_iterations) {
+	size_t w = input_image->columns();
+	size_t h = input_image->rows();
+	PixelPacket *pixels = input_image->getPixels(0, 0, w, h);
+	Image filtered_image(*input_image);
+	PixelPacket *filtered_pixels = filtered_image.getPixels(0, 0, w, h);
+	for (size_t count = 0; count < filter_iterations; count++) {
+		for (size_t i = 0; i < h; i++) {
+			for (size_t j = 0; j < w; j++) {
+				filtered_pixels[convert_to_index(i, j, w)] = median_color_value(i, j, input_image);
+			}
+		}
+		for (size_t i = 0; i < h; i++) {
+			for (size_t j = 0; j < w; j++) {
+				modify_median_color_value(i, j, input_image, &filtered_image);
+			}
+		}
+		pixels = filtered_pixels;
+	}
+	return filtered_image;
+}
+
 int main(int argc, char **argv)
 {
 	//Initiate ROS
@@ -183,106 +310,20 @@ int main(int argc, char **argv)
 	sub_image.extent(Geometry(calculated_size, calculated_size), sub_image.getPixels(0, 0, sub_image.columns(), sub_image.rows())[0], NorthWestGravity);
 	sub_image.type(GrayscaleType);
 
-	size_t w = sub_image.columns();
-	ROS_INFO("Width: %zu", w);
-	size_t h = sub_image.rows();
-	ROS_INFO("Height: %zu", h);
+	Image smoothed_image = smooth_image(&sub_image, bot_trshd, top_trshd);
 
-	Image filtered_image(sub_image);
-
-	unsigned char *gray_pixels = new unsigned char[w * h];
-	filtered_image.write(0, 0, w, h, "I", CharPixel, gray_pixels);
-	ROS_INFO("top_trshd: %zu", top_trshd);
-	ROS_INFO("bot_trshd: %zu", bot_trshd);
-	for (size_t i = 0; i < h; i++) {
-		for (size_t j = 0; j < w; j++) {
-			if (gray_pixels[convert_to_index(i, j, w)] < bot_trshd)
-			{
-				gray_pixels[convert_to_index(i, j, w)] = 0;
-			} else if (gray_pixels[convert_to_index(i, j, w)] >= top_trshd) {
-				gray_pixels[convert_to_index(i, j, w)] = 255;
-			}
+	Image filtered_image(smoothed_image);
+	if (use_modified_median_filtering == true) {
+		filtered_image = modified_median_filter_image(&smoothed_image, filter_iterations);
+	} else {
+		if (use_median_filtering == true) {
+			filtered_image = median_filter_image(&smoothed_image, filter_iterations);
 		}
 	}
-	filtered_image.read(w, h, "I", CharPixel, gray_pixels);
-
-	PixelPacket *pixels = filtered_image.getPixels(0, 0, w, h);
-	Image filtered_image2(filtered_image);
-	PixelPacket *filtered_pixels = filtered_image2.getPixels(0, 0, w, h);
-
-	if (use_median_filtering == true) {
-		std::map<Color, int> neighbours;
-		for (size_t count = 0; count < filter_iterations; count++) {
-			for (size_t i = 0; i < h; i++) {
-				for (size_t j = 0; j < w; j++) {
-					neighbours.clear();
-					neighbours[pixels[convert_to_index(i, j, w)]]++;
-					if (is_point_exist(i - 1, j - 1, w, h)) {
-						neighbours[pixels[convert_to_index(i - 1, j - 1, w)]]++;
-					}
-					if (is_point_exist(i - 1, j, w, h)) {
-						neighbours[pixels[convert_to_index(i - 1, j, w)]]++;
-					}
-					if (is_point_exist(i - 1, j + 1, w, h)) {
-						neighbours[pixels[convert_to_index(i - 1, j + 1, w)]]++;
-					}
-					if (is_point_exist(i, j - 1, w, h)) {
-						neighbours[pixels[convert_to_index(i, j - 1, w)]]++;
-					}
-					if (is_point_exist(i, j + 1, w, h)) {
-						neighbours[pixels[convert_to_index(i, j + 1, w)]]++;
-					}
-					if (is_point_exist(i + 1, j - 1, w, h)) {
-						neighbours[pixels[convert_to_index(i + 1, j - 1, w)]]++;
-					}
-					if (is_point_exist(i + 1, j, w, h)) {
-						neighbours[pixels[convert_to_index(i + 1, j, w)]]++;
-					}
-					if (is_point_exist(i + 1, j + 1, w, h)) {
-						neighbours[pixels[convert_to_index(i + 1, j + 1, w)]]++;
-					}
-					Color max_value = neighbours.find(pixels[convert_to_index(i, j, w)])->first;
-					int max_value_count = 0;
-					for (std::map<Color, int>::iterator it = neighbours.begin(); it != neighbours.end(); ++it) {
-						if (it->second > max_value_count) {
-							max_value_count = it->second;
-							max_value = it->first;
-						}
-					}
-
-					filtered_pixels[convert_to_index(i, j, w)] = max_value;
-				}
-			}
-			if (use_modified_median_filtering == true) {
-				for (size_t i = 0; i < h; i++) {
-					for (size_t j = 0; j < w; j++) {
-						if (is_point_exist(i - 1, j, w, h) && is_point_exist(i + 1, j, w, h)) {
-							if (pixels[convert_to_index(i - 1, j, w)] == pixels[convert_to_index(i, j, w)] &&
-							        pixels[convert_to_index(i, j, w)] == pixels[convert_to_index(i + 1, j, w)]) {
-								filtered_pixels[convert_to_index(i - 1, j, w)] = pixels[convert_to_index(i - 1, j, w)];
-								filtered_pixels[convert_to_index(i, j, w)] = pixels[convert_to_index(i, j, w)];
-								filtered_pixels[convert_to_index(i + 1, j, w)] = pixels[convert_to_index(i + 1, j, w)];
-							}
-						}
-						if (is_point_exist(i, j - 1, w, h) && is_point_exist(i, j + 1, w, h)) {
-							if (pixels[convert_to_index(i, j - 1, w)] == pixels[convert_to_index(i, j, w)] &&
-							        pixels[convert_to_index(i, j, w)] == pixels[convert_to_index(i, j + 1, w)]) {
-								filtered_pixels[convert_to_index(i, j - 1, w)] = pixels[convert_to_index(i, j - 1, w)];
-								filtered_pixels[convert_to_index(i, j, w)] = pixels[convert_to_index(i, j, w)];
-								filtered_pixels[convert_to_index(i, j + 1, w)] = pixels[convert_to_index(i, j + 1, w)];
-							}
-						}
-					}
-				}
-			}
-			pixels = filtered_pixels;
-		}
-	}
-
 	if (color_inverse == true) {
-		filtered_image2.negate();
+		filtered_image.negate();
 	}
 	save_path += "/prepared_map.png";
-	filtered_image2.write(save_path);
+	filtered_image.write(save_path);
 	return 0;
 }
