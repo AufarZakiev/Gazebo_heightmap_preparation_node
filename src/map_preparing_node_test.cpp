@@ -1,6 +1,5 @@
 #include "ros/ros.h"
 #include <Magick++.h>
-#include <map>
 #include <boost/program_options.hpp>
 
 using namespace Magick;
@@ -16,7 +15,7 @@ bool is_point_exist(size_t row, size_t column, size_t width, size_t height) {
 }
 
 int convert_to_index(size_t i, size_t column, size_t width) {
-	return (width * i) + column;
+	return static_cast<int>((width * i) + column);
 }
 
 Color median_color_value(size_t i, size_t j, Image *input_image) {
@@ -110,7 +109,6 @@ Image smooth_image(Image *input_image, size_t bot_trshd, size_t top_trshd) {
 Image median_filter_image(Image *input_image, size_t filter_iterations) {
 	size_t w = input_image->columns();
 	size_t h = input_image->rows();
-	PixelPacket *pixels = input_image->getPixels(0, 0, w, h);
 	Image filtered_image(*input_image);
 	PixelPacket *filtered_pixels = filtered_image.getPixels(0, 0, w, h);
 	for (size_t count = 0; count < filter_iterations; count++) {
@@ -119,7 +117,6 @@ Image median_filter_image(Image *input_image, size_t filter_iterations) {
 				filtered_pixels[convert_to_index(i, j, w)] = median_color_value(i, j, input_image);
 			}
 		}
-		pixels = filtered_pixels;
 	}
 	return filtered_image;
 }
@@ -127,7 +124,6 @@ Image median_filter_image(Image *input_image, size_t filter_iterations) {
 Image modified_median_filter_image(Image *input_image, size_t filter_iterations) {
 	size_t w = input_image->columns();
 	size_t h = input_image->rows();
-	PixelPacket *pixels = input_image->getPixels(0, 0, w, h);
 	Image filtered_image(*input_image);
 	PixelPacket *filtered_pixels = filtered_image.getPixels(0, 0, w, h);
 	for (size_t count = 0; count < filter_iterations; count++) {
@@ -141,21 +137,20 @@ Image modified_median_filter_image(Image *input_image, size_t filter_iterations)
 				modify_median_color_value(i, j, input_image, &filtered_image);
 			}
 		}
-		pixels = filtered_pixels;
 	}
 	return filtered_image;
 }
 
-void display_parameters(po::variables_map vm) {
-	if (vm.count("s")) {
+void display_parameters(po::variables_map const *vm) {
+	if (vm->count("s")) {
 		cout << "Saving path was set to "
-		     << vm["s"].as<std::string>() << "\n";
+		     << vm->at("s").as<std::string>() << "\n";
 	} else {
 		cout << "Saving path was not set. Using source image folder as default. \n";
 	}
 
-	if (vm.count("offset")) {
-		std::vector<size_t> off = vm["offset"].as<std::vector<size_t> >();
+	if (vm->count("offset")) {
+		std::vector<size_t> off = vm->at("offset").as<std::vector<size_t> >();
 		cout << "Offset_x was set to "
 		     << off[0] << "\n";
 		cout << "Offset_y was set to "
@@ -164,64 +159,64 @@ void display_parameters(po::variables_map vm) {
 		cout << "Offset was not set. Using default 0,0 values. \n";
 	}
 
-	if (vm.count("w")) {
+	if (vm->count("w")) {
 		cout << "Desired width was set to "
-		     << vm["w"].as<size_t>() << "\n";
+		     << vm->at("w").as<size_t>() << "\n";
 	} else {
 		cout << "Desired width was not set. \n";
 	}
 
-	if (vm.count("h")) {
+	if (vm->count("h")) {
 		cout << "Desired height was set to "
-		     << vm["h"].as<size_t>() << "\n";
+		     << vm->at("h").as<size_t>() << "\n";
 	} else {
 		cout << "Desired height was not set. \n";
 	}
 
-	if (vm.count("use_median_filtering")) {
+	if (vm->count("use_median_filtering")) {
 		cout << "Use_median_filtering was set to "
-		     << vm["use_median_filtering"].as<bool>() << "\n";
+		     << vm->at("use_median_filtering").as<bool>() << "\n";
 	}
 
-	if (vm.count("use_modified_median_filtering")) {
+	if (vm->count("use_modified_median_filtering")) {
 		cout << "Use_modified_median_filtering was set to "
-		     << vm["use_modified_median_filtering"].as<bool>() << "\n";
+		     << vm->at("use_modified_median_filtering").as<bool>() << "\n";
 	}
 
-	if (vm.count("color_inverse")) {
+	if (vm->count("color_inverse")) {
 		cout << "Color_inverse was set to "
-		     << vm["color_inverse"].as<bool>() << "\n";
+		     << vm->at("color_inverse").as<bool>() << "\n";
 	}
 
-	if (vm.count("bot_trshd")) {
+	if (vm->count("bot_trshd")) {
 		cout << "Bot_trshd was set to "
-		     << vm["bot_trshd"].as<size_t>() << "\n";
+		     << vm->at("bot_trshd").as<size_t>() << "\n";
 	} else {
 		cout << "Bot_trshd was not set. \n";
 	}
 
-	if (vm.count("top_trshd")) {
+	if (vm->count("top_trshd")) {
 		cout << "Top_trshd was set to "
-		     << vm["top_trshd"].as<size_t>() << "\n";
+		     << vm->at("top_trshd").as<size_t>() << "\n";
 	} else {
 		cout << "Top_trshd was not set. \n";
 	}
 
-	if (vm.count("iter")) {
+	if (vm->count("iter")) {
 		cout << "Filter_iterations was set to "
-		     << vm["iter"].as<size_t>() << "\n";
+		     << vm->at("iter").as<size_t>() << "\n";
 	} else {
 		cout << "Filter_iterations was not set. \n";
 	}
 }
 
-bool check_parameters(po::variables_map vm) {
-	if (vm.count("help")) {
+bool check_parameters(po::variables_map const *vm) {
+	if (vm->count("help")) {
 		return false;
 	}
-	if (vm.count("f")) {
+	if (vm->count("f")) {
 		cout << "Source image path was set to "
-		     << vm["f"].as<std::string>() << "\n";
+		     << vm->at("f").as<std::string>() << "\n";
 	} else {
 		return false;
 	}
@@ -242,17 +237,14 @@ int main(int argc, char **argv)
 	ros::init(argc, argv, "map_preparing_test");
 	puts(USAGE);
 
-	std::string map_path = "";
-	std::string save_path = "";
+	std::string map_path;
+	std::string save_path;
 	bool use_median_filtering;
 	bool use_modified_median_filtering;
 	bool color_inverse;
 	size_t bot_trshd;
 	size_t top_trshd;
 	size_t filter_iterations;
-
-	size_t found = map_path.find_last_of("/");
-	save_path = map_path.substr(0, found);
 
 	size_t min_width;
 	size_t min_height;
@@ -264,7 +256,7 @@ int main(int argc, char **argv)
 	desc.add_options()
 	("help", "Show help message")
 	("f", po::value<std::string>(&map_path), "Path to source image")
-	("s", po::value<std::string>(&save_path)->default_value(map_path.substr(0, map_path.find_last_of("/"))), "Prepared map and generated world saving folder path")
+	("s", po::value<std::string>(&save_path)->default_value(map_path.substr(0, map_path.find_last_of('/'))), "Prepared map and generated world saving folder path")
 	("offset", po::value<std::vector<size_t> >(&offset_pair)->multitoken(), "Offset to crop from left-top corner of image")
 	("w", po::value<size_t>(&min_width)->default_value(source_image.baseColumns()), "Minimum desired width. Desired width is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size.")
 	("h", po::value<size_t>(&min_height)->default_value(source_image.baseRows()), "Minimum desired height (optional). Desired height is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size.")
@@ -278,11 +270,11 @@ int main(int argc, char **argv)
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);
-	if (!check_parameters(vm)) {
+	if (!check_parameters(&vm)) {
 		cout << desc << "\n";
 		return 1;
 	}
-	display_parameters(vm);
+	display_parameters(&vm);
 	source_image = Image(map_path);
 
 	size_t max_size = 0; //TODO с заполением пикселей при отсутствии обрезки
