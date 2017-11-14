@@ -215,6 +215,27 @@ void display_parameters(po::variables_map vm) {
 	}
 }
 
+bool check_parameters(po::variables_map vm) {
+	if (vm.count("help")) {
+		return false;
+	}
+	if (vm.count("f")) {
+		cout << "Source image path was set to "
+		     << vm["f"].as<std::string>() << "\n";
+	} else {
+		return false;
+	}
+	return true;
+}
+
+size_t gazebo_specified_size(size_t desired_size) {
+	size_t calculated_size = 1;
+	while ((calculated_size + 1) < desired_size) {
+		calculated_size = calculated_size * 2;
+	}
+	calculated_size += 1; // Gazebo needs (2^n)+1 px size images
+	return calculated_size;
+}
 int main(int argc, char **argv)
 {
 	//Initiate ROS
@@ -223,22 +244,21 @@ int main(int argc, char **argv)
 
 	std::string map_path = "";
 	std::string save_path = "";
-	size_t x_offset = 0;
-	size_t y_offset = 0;
-	bool use_median_filtering = false;
-	bool use_modified_median_filtering = false;
-	bool color_inverse = false;
+	bool use_median_filtering;
+	bool use_modified_median_filtering;
+	bool color_inverse;
 	size_t bot_trshd;
 	size_t top_trshd;
-	size_t filter_iterations = 1;
+	size_t filter_iterations;
 
 	size_t found = map_path.find_last_of("/");
 	save_path = map_path.substr(0, found);
 
+	size_t min_width;
+	size_t min_height;
+	std::vector<size_t> offset_pair(0, 0);
+
 	Image source_image;
-	size_t min_width = source_image.baseColumns();
-	size_t min_height = source_image.baseRows();
-	std::vector<size_t> offset_pair(1800, 1700);
 
 	po::options_description desc("Allowed options");
 	desc.add_options()
@@ -258,20 +278,13 @@ int main(int argc, char **argv)
 	po::variables_map vm;
 	po::store(po::parse_command_line(argc, argv, desc), vm);
 	po::notify(vm);
-	if (vm.count("help")) {
-		cout << desc << "\n";
-		return 1;
-	}
-	if (vm.count("f")) {
-		cout << "Source image path was set to "
-		     << vm["f"].as<std::string>() << "\n";
-	} else {
+	if (!check_parameters(vm)) {
 		cout << desc << "\n";
 		return 1;
 	}
 	display_parameters(vm);
 	source_image = Image(map_path);
-	
+
 	size_t max_size = 0; //TODO с заполением пикселей при отсутствии обрезки
 	if (min_width != 0) {
 		max_size = min_width;
@@ -281,11 +294,7 @@ int main(int argc, char **argv)
 	}
 
 	Image sub_image(source_image);
-	size_t calculated_size = 1;
-	while ((calculated_size + 1) < max_size) {
-		calculated_size = calculated_size * 2;
-	}
-	calculated_size += 1; // Gazebo needs (2^n)+1 px size images
+	size_t calculated_size = gazebo_specified_size(max_size);
 
 	sub_image.magick("png");
 	sub_image.chop(Geometry(offset_pair[0], offset_pair[1]));
@@ -305,6 +314,7 @@ int main(int argc, char **argv)
 	if (color_inverse) {
 		filtered_image.negate();
 	}
+	
 	save_path += "/prepared_map.png";
 	filtered_image.write(save_path);
 	return 0;
