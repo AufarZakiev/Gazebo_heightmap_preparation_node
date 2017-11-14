@@ -28,7 +28,7 @@ $ git clone https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node.git
 Install the dependencies before building node.
 
 ```sh
-$ sudo apt-get install libmagick++dev
+$ sudo apt-get install libmagick++-dev
 ```
 
 Then build node
