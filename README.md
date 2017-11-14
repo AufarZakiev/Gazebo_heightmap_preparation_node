@@ -21,7 +21,7 @@ Node requires [ImageMagick](https://www.imagemagick.org/script/index.php) to bui
 Switch to catkin workspace and download node
 
 ```
-$ cd catkin_ws
+$ cd catkin_ws/src
 $ git clone https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node.git
 ```
 
