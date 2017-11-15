@@ -129,7 +129,7 @@ include_directories(
 # add_executable(pcl_ros_tutorial_node src/pcl_ros_tutorial_node.cpp)
 # add_executable(maps_merging_node src/maps_merging_node.cpp)
 add_executable(world_creator src/world_creator.cpp)
-add_executable(map_preparing_test_node src/map_preparing_node_test.cpp)
+add_executable(map_preparing_node src/map_preparing_node.cpp)
 # add_executable(reachable_unknown_publisher src/reachable_unknown_publisher.cpp)
 # add_executable(goals_publisher src/goals_publisher.cpp)
 # add_executable(naive_goals_publisher src/naive_goals_publisher.cpp)
@@ -144,7 +144,7 @@ add_executable(map_preparing_test_node src/map_preparing_node_test.cpp)
 #   ${catkin_LIBRARIES}
 # )
 
- target_link_libraries(map_preparing_test_node
+ target_link_libraries(map_preparing_node
    ${catkin_LIBRARIES}
    ${ImageMagick_LIBRARIES}
  )
