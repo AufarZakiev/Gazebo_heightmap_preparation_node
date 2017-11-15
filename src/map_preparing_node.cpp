@@ -175,17 +175,17 @@ void display_parameters(po::variables_map const *vm) {
 
 	if (vm->count("use_median_filtering")) {
 		cout << "Use_median_filtering was set to "
-		     << vm->at("use_median_filtering").as<bool>() << "\n";
+		     << vm->at("use_median_filtering").as<std::string>() << "\n";
 	}
 
 	if (vm->count("use_modified_median_filtering")) {
 		cout << "Use_modified_median_filtering was set to "
-		     << vm->at("use_modified_median_filtering").as<bool>() << "\n";
+		     << vm->at("use_modified_median_filtering").as<std::string>() << "\n";
 	}
 
 	if (vm->count("color_inverse")) {
 		cout << "Color_inverse was set to "
-		     << vm->at("color_inverse").as<bool>() << "\n";
+		     << vm->at("color_inverse").as<std::string>() << "\n";
 	}
 
 	if (vm->count("bot_trshd")) {
@@ -239,9 +239,9 @@ int main(int argc, char **argv)
 
 	std::string map_path;
 	std::string save_path;
-	bool use_median_filtering;
-	bool use_modified_median_filtering;
-	bool color_inverse;
+	std::string use_median_filtering;
+	std::string use_modified_median_filtering;
+	std::string color_inverse;
 	size_t bot_trshd;
 	size_t top_trshd;
 	size_t filter_iterations;
@@ -260,9 +260,9 @@ int main(int argc, char **argv)
 	("offset", po::value<std::vector<size_t> >(&offset_pair)->multitoken(), "Offset to crop from left-top corner of image")
 	("w", po::value<size_t>(&min_width)->default_value(source_image.baseColumns()), "Minimum desired width. Desired width is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size.")
 	("h", po::value<size_t>(&min_height)->default_value(source_image.baseRows()), "Minimum desired height (optional). Desired height is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size.")
-	("use_median_filtering", po::bool_switch(&use_median_filtering)->default_value(false), "Median filter enabling")
-	("use_modified_median_filtering", po::bool_switch(&use_modified_median_filtering)->default_value(false), "Modified median filter enabling")
-	("color_inverse", po::bool_switch(&color_inverse)->default_value(false), "Image color inverse")
+	("use_median_filtering", po::value<std::string>(&use_median_filtering)->default_value("false"), "Median filter enabling")
+	("use_modified_median_filtering", po::value<std::string>(&use_modified_median_filtering)->default_value("false"), "Modified median filter enabling")
+	("use_color_inverse", po::value<std::string>(&color_inverse)->default_value("false"), "Image color inverse")
 	("bot_trshd", po::value<size_t>(&bot_trshd)->default_value(0), "Thresholds used to smooth out heightmap. Every pixel below bot_trshd turns to 0 value")
 	("top_trshd", po::value<size_t>(&top_trshd)->default_value(255), "Thresholds used to smooth out heightmap. Every pixel above top_trshd turns to 255 value")
 	("iter", po::value<size_t>(&filter_iterations), "Filtering iterations count");
@@ -296,14 +296,14 @@ int main(int argc, char **argv)
 	Image smoothed_image = smooth_image(&sub_image, bot_trshd, top_trshd);
 
 	Image filtered_image(smoothed_image);
-	if (use_modified_median_filtering) {
+	if (use_modified_median_filtering=="true") {
 		filtered_image = modified_median_filter_image(&smoothed_image, filter_iterations);
 	} else {
-		if (use_median_filtering) {
+		if (use_median_filtering=="true") {
 			filtered_image = median_filter_image(&smoothed_image, filter_iterations);
 		}
 	}
-	if (color_inverse) {
+	if (color_inverse=="true") {
 		filtered_image.negate();
 	}
 	
