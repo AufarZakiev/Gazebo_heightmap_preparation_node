@@ -52,6 +52,9 @@ $ catkin_make
 | bot_trshd:=<trshd_int> | Thresholds used to smooth out heightmap. Every pixel below "bot_trshd" turns to 0 value (optional) |
 | top_trshd:=<trshd_int> | Thresholds used to smooth out heightmap. Every pixel above "top_trshd" turns to 255 value (optional) |
 | iter:=<iter_int> | Filtering iterations count (optional) |
+| world_length:=<length_int> | Generated heightmap length in meters (optional) |
+| world_width:=<width_int> | Generated heightmap width in meters (optional) |
+| world_height:=<height_int> | Generated heightmap height in meters (optional) |
 
 ## Examples
 
@@ -119,3 +122,12 @@ roslaunch gazebo_heightmap_preparation prepare.launch bot_trshd:=206 use_color_i
 | Before | After |
 | ------ | ------ |
 |![initial_map](https://user-images.githubusercontent.com/5558521/32825820-5ac67d0c-c9f7-11e7-967c-3b53b429f1e1.png)|![sizes](https://user-images.githubusercontent.com/5558521/32826260-c22c3b5c-c9f8-11e7-96df-3f478e5f8e9c.png)
+
+#### World sizes
+```sh
+roslaunch gazebo_heightmap_preparation prepare.launch use_modified_median_filtering:=true use_color_inverse:=true world_height:=5
+cd <result_folder>
+gazebo genereated_world.world
+```
+All walls became higher
+![](https://user-images.githubusercontent.com/5558521/32828808-3465bb96-ca01-11e7-8f16-029acb3a86ff.png)
