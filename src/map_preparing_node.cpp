@@ -277,7 +277,7 @@ int main(int argc, char **argv)
 	display_parameters(&vm);
 	source_image = Image(map_path);
 
-	size_t max_size = 0; //TODO с заполением пикселей при отсутствии обрезки
+	size_t max_size = 0; 
 	if (min_width != 0) {
 		max_size = min_width;
 	}

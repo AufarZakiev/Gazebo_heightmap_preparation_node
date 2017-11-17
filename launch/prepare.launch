@@ -1,3 +1,4 @@
+<?xml version="1.0"?>
 <launch>
   <!-- Median filter enabling  -->
   <arg default="true" name="use_median_filtering"/>

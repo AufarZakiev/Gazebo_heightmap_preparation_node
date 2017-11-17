@@ -2,10 +2,11 @@
 
 ## Overview
 
-This is ROS node providing automatic images edition before importing it in Gazebo simulator as heightmap. 
+This is ROS node providing automatic images edition before importing it in Gazebo simulator as heightmap.
 
 ## Features
 
+- Image noise filtration
 - User-controlled image cropping
 - Automatic grayscaling
 - Automatic Gazebo-defined resizing
@@ -57,6 +58,11 @@ $ catkin_make
 | world_height:=<height_int> | Generated heightmap height in meters (optional) |
 
 ## Examples
+
+Using launch-file `prepare.launch` is preferred. It contains `map_preparing_node` and `world_creator` nodes. To explore their args and usage type `--help` option, for example:
+```sh
+rosrun gazebo_heightmap_preparation world_creator --help
+```
 
 ### Built-in example
 
