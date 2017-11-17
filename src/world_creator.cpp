@@ -4,9 +4,9 @@
 namespace po = boost::program_options;
 
 #define USAGE ""
-void createWorld(std::string world_path, std::string map_path, int length, int width, int height)
+void createWorld(std::string const *world_path, std::string const *map_path, int length, int width, int height)
 {
-  std::ofstream buff(world_path.c_str());
+  std::ofstream buff(world_path->c_str());
   buff << "<?xml version=\"1.0\" ?>\n"
        "<sdf version=\"1.4\">\n"
        "<world name=\"default\">\n"
@@ -148,11 +148,11 @@ int main(int argc, char **argv)
   }
   display_parameters(&vm);
 
-  size_t found = map_path.find_last_of("/");
+  size_t found = map_path.find_last_of('/');
   std::string world_path = map_path.substr(0, found);
   world_path += "/generated_world.world";
   //Initiate ROS
   ros::init(argc, argv, "world_creator");
-  createWorld(world_path, map_path,length,width,height);
+  createWorld(&world_path, &map_path,length,width,height);
   return 0;
 }
