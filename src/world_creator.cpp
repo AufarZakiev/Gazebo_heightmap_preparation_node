@@ -25,7 +25,7 @@ void createWorld(std::string const *world_path, std::string const *map_path, int
        "<heightmap>\n"
        "<uri>\n"
        "file://";
-  buff << map_path;
+  buff << map_path->c_str();
   buff << "</uri>\n"
        "<size>";
   buff << length;
@@ -67,7 +67,7 @@ void createWorld(std::string const *world_path, std::string const *map_path, int
        "</blend>\n"
        "<uri>\n"
        "file://";
-  buff << map_path;
+  buff << map_path->c_str();
   buff << "</uri>\n"
        "<size>";
   buff << length;

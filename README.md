@@ -1,4 +1,4 @@
-# Gazebo-heightmap-preparation-node
+# Gazebo-heightmap-preparation
 
 ## Overview
 
@@ -19,20 +19,20 @@ Please reference to **"Automatic mapping and filtering tool: from a sensor-based
 
 Node requires [ImageMagick](https://www.imagemagick.org/script/index.php) to build and run.
 
-Switch to catkin workspace and download node
+Switch to catkin workspace and download package:
 
 ```
 $ cd catkin_ws/src
 $ git clone https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node.git
 ```
 
-Install the dependencies before building node.
+Install the dependencies before building nodes:
 
 ```sh
 $ sudo apt-get install libmagick++-dev
 ```
 
-Then build node
+Then build nodes:
 
 ```sh
 $ catkin_make
