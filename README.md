@@ -1,4 +1,4 @@
-# Gazebo-heightmap-preparation-node
+# Gazebo-heightmap-preparation
 
 ## Overview
 
@@ -13,26 +13,26 @@ This is ROS node providing automatic images edition before importing it in Gazeb
 
 ## References
 
-Please reference to **"Automatic mapping and filtering tool: from a sensor-based occupancy grid to a 3D Gazebo octomap"** paper by Roman Lavrenov, Aufar Zakiev, Evgeni Magid in academic publications used this tool.
+Please refer to **"Automatic mapping and filtering tool: from a sensor-based occupancy grid to a 3D Gazebo octomap"** paper by Roman Lavrenov, Aufar Zakiev, Evgeni Magid in academic publications used this tool.
 
 ## Installation
 
 Node requires [ImageMagick](https://www.imagemagick.org/script/index.php) to build and run.
 
-Switch to catkin workspace and download node
+Switch to catkin workspace and download package:
 
 ```
 $ cd catkin_ws/src
 $ git clone https://github.com/AufarZakiev/Gazebo_heightmap_preparation_node.git
 ```
 
-Install the dependencies before building node.
+Install the dependencies before building nodes:
 
 ```sh
 $ sudo apt-get install libmagick++-dev
 ```
 
-Then build node
+Then build nodes:
 
 ```sh
 $ catkin_make
@@ -42,8 +42,8 @@ $ catkin_make
 
 | Parameter name | Feature |
 | ------ | ------ |
-| f:=<path_string> | Path to source image (required) |
-| s:=<path_string> | Prepared map and generated world saving folder path (optional) |
+| map_filepath:=<path_string> | Path to source image (required) |
+| saving_filepath:=<path_string> | Prepared map and generated world saving folder path (optional) |
 | offset_x:=<offset_int> offset_y:=<offset_int> | Offset to crop from left-top corner of image (optional) |
 | desired_width:=<width_int> | Minimum desired width (optional). Desired width is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size. |
 | desired_height:=<height_int> | Minimum desired height (optional). Desired height is used to compute final size of image: Gazebo hrighmap needs 2^n + 1 pixel size images, so desired size increases to nearest 2^n + 1 size. For example, 400 px turns to 513 px size. |
